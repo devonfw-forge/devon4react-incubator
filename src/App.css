@@ -23,6 +23,46 @@
   color: #61dafb;
 }
 
+#dataContainer {
+  display: flex;
+  justify-content: space-around;
+}
+.employeesData, .projectsContainer {
+  width: 45%; 
+  border-collapse: collapse; 
+}
+.projectsData {
+  width: 100%;
+}
+tr:nth-of-type(odd) { 
+  background: #eee; 
+}
+th { 
+  background: #333; 
+  color: white; 
+  font-weight: bold; 
+}
+td, th { 
+  padding: 6px; 
+  border: 1px solid #ccc; 
+  text-align: center; 
+  position: relative;
+}
+
+.cell {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent;
+  border: none;
+}
+
+.hours {
+  text-align: center;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
