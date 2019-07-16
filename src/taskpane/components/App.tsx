@@ -1,4 +1,4 @@
-import * as React from 'react';
+/*import * as React from 'react';
 import { Button, ButtonType } from 'office-ui-fabric-react';
 import Header from './Header';
 import HeroList, { HeroListItem } from './HeroList';
@@ -43,9 +43,9 @@ export default class App extends React.Component<AppProps, AppState> {
   click = async () => {
     try {
       await Excel.run(async context => {
-        /**
-         * Insert your Excel code here
-         */
+        
+        //Insert your Excel code here
+         
         const range = context.workbook.getSelectedRange();
 
         // Read the range address
@@ -88,4 +88,41 @@ export default class App extends React.Component<AppProps, AppState> {
       </div>
     );
   }
-}
+}*/
+import * as React from 'react';
+import { useState } from 'react';
+import './App.css';
+import { Addin } from '../../shared/model/interfaces/Addin';
+import { empleado } from './data';
+import { Grid } from '../../components/Grid';
+//import * as ReactDOM from 'react-dom';
+
+export const App: React.FunctionComponent<any> = () => {
+  let employee: Addin = empleado;
+  if (localStorage.getItem('empleado')) {
+    employee = JSON.parse(localStorage.getItem('empleado') || '');
+  }
+  const [emp, setEmp] = useState(employee);
+
+  const handleClick = () => {
+    emp.fields.push({ fieldName: '', fieldValue: '' });
+    localStorage.setItem('empleado', JSON.stringify(emp));
+    setEmp(emp);
+    this.forceUpdate;
+    //ReactDOM.render(<App />, document.getElementById('root'));
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <div>
+          <h1>Hello {emp.empleado.name}!</h1>
+
+          <Grid employee={emp} setEmp={setEmp} />
+
+          <button onClick={handleClick}>+</button>
+        </div>
+      </header>
+    </div>
+  );
+};
