@@ -94,8 +94,9 @@ import { useState } from 'react';
 import './App.css';
 import { Addin } from '../../shared/model/interfaces/Addin';
 import { empleado } from './data';
+import { AppContainer } from 'react-hot-loader';
 import { Grid } from '../../components/Grid';
-//import * as ReactDOM from 'react-dom';
+import * as ReactDOM from 'react-dom';
 
 export const App: React.FunctionComponent<any> = () => {
   let employee: Addin = empleado;
@@ -108,8 +109,21 @@ export const App: React.FunctionComponent<any> = () => {
     emp.fields.push({ fieldName: '', fieldValue: '' });
     localStorage.setItem('empleado', JSON.stringify(emp));
     setEmp(emp);
-    this.forceUpdate;
     //ReactDOM.render(<App />, document.getElementById('root'));
+  };
+
+  const render = (Component) => {
+    ReactDOM.render(
+        <AppContainer>
+            <Component title={title} isOfficeInitialized={isOfficeInitialized} />
+        </AppContainer>,
+        document.getElementById('container')
+    );
+  };
+
+  const clearStorage = () => {
+    localStorage.clear();
+    render(App);
   };
 
   return (
@@ -121,6 +135,7 @@ export const App: React.FunctionComponent<any> = () => {
           <Grid employee={emp} setEmp={setEmp} />
 
           <button onClick={handleClick}>+</button>
+          <button onClick={clearStorage}>clear</button>
         </div>
       </header>
     </div>
