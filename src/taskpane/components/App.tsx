@@ -4,22 +4,9 @@ import { getSelectedEmployeeData } from './SelectedEmployee';
 import { getProjectsData } from './ProjectsData';
 import { setPanelData } from './PanelData';
 import { handleHourChange } from './SaveHour';
-
-interface HoursList {
-  value: Number;
-  address: string;
-}
-
-interface EmployeeData {
-  category: any;
-  activeEmployee: any;
-}
-
-interface ProjData {
-  firstCell: any;
-  lastCell: any;
-  colToCheck: any;
-}
+import { HoursList } from './shared/model/interfaces/HoursList';
+import { EmployeeData } from './shared/model/interfaces/EmployeeData';
+import { ProjectData } from './shared/model/interfaces/ProjectData';
 
 export default class App extends React.Component<{}, {
   projectsSheet: Excel.Worksheet,
@@ -77,7 +64,7 @@ export default class App extends React.Component<{}, {
           projectsSheet: context.workbook.worksheets.getItem(employeeData.category.values[0][0]).load("name") // Get the Excel sheet containing projects and their data 
         });
 
-        const projData: ProjData = {
+        const projData: ProjectData = {
           firstCell: null,
           lastCell: null,
           colToCheck: null
