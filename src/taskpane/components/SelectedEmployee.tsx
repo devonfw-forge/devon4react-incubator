@@ -14,7 +14,7 @@ const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
     const activeRow = range.rowIndex + 1; // Get the index of the row of the selected cell 
     const activeEmployee = activeSheet.getRange(userCol + activeRow).load("values"); // Get the name of the selected Employee
     await context.sync();
-    return {selectedCat, activeUser: activeEmployee};
+    return {selectedCat, activeEmployee};
 };
 
 export { getSelectedEmployeeData };

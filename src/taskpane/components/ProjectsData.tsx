@@ -14,12 +14,12 @@ const getProjectsData = async (context: Excel.RequestContext, employeeData, stat
     await context.sync();
     const firstProjCell = firstProjPos.address.split("!")[1]; // Get the cell location of the first project in the list
     const lastProjCell = lastProjPos.address.split("!")[1]; // Get the cell location of the last project in the list
-    const colToCheck = state.projectsSheet.findAll(employeeData.activeEmployee.values[0][0], {
+    const employeeCol = state.projectsSheet.findAll(employeeData.activeEmployee.values[0][0], {
         completeMatch: true,
         matchCase: false
     }).load("address"); // Find the location of the Employee in the sheet containing projects
     await context.sync();
-    return {first: firstProjCell, last: lastProjCell, colToCheck};
+    return {first: firstProjCell, last: lastProjCell, employeeCol};
 };
 
 // Save Projects' data on other sheets

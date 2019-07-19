@@ -58,7 +58,7 @@ export default class App extends React.Component<{}, {
         };
         await getSelectedEmployeeData(context).then((res: any) => {
           employeeData.category = res.selectedCat;
-          employeeData.activeEmployee = res.activeUser;
+          employeeData.activeEmployee = res.activeEmployee;
         });
 
         this.setState({
@@ -68,12 +68,12 @@ export default class App extends React.Component<{}, {
         const projData: ProjectData = {
           firstCell: null,
           lastCell: null,
-          colToCheck: null
+          employeeCol: null
         }
         await getProjectsData(context, employeeData, this.state).then((res: any) => {
           projData.firstCell = res.first;
           projData.lastCell = res.last;
-          projData.colToCheck = res.colToCheck;
+          projData.employeeCol = res.employeeCol;
         });
 
         this.setState({
