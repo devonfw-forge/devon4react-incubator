@@ -1,5 +1,5 @@
 import * as React from 'react';
-import AddProject from './AddProject';
+import { AddProject } from './AddProjectComponent';
 import { getSelectedEmployeeData } from './SelectedEmployee';
 import { getProjectsData } from './ProjectsData';
 import { setPanelData } from './PanelData';
@@ -7,6 +7,7 @@ import { handleHourChange } from './SaveHour';
 import { HoursList } from './shared/model/interfaces/HoursList';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
+import { ProjectsPanel } from './ProjectsPanelComponent';
 
 export default class App extends React.Component<{}, {
   projectsSheet: Excel.Worksheet,
@@ -98,24 +99,8 @@ export default class App extends React.Component<{}, {
       <div className='ms-welcome'>
         {this.state.dataLoaded &&
         <div>
-          <AddProject projSheet={this.state.projectsSheet} click={this.click} ></AddProject>
-          <table className='projectsContainer'>
-              <tbody>
-                <tr>
-                  <th colSpan={2}>{this.state.employeeName}</th>
-                </tr>
-                {this.state.projects.values.map((project: string[], i: number) => {
-                  return (
-                    <tr key={i}>
-                      <td>{project[0]}</td>
-                      <td id={project[0]}>
-                        <p suppressContentEditableWarning={true} contentEditable onKeyUp={(event) => handleHourChange(event, i, this.state)}>{this.state.hoursList[i].value}</p>
-                      </td>
-                    </tr>
-                    )
-                  })}
-              </tbody>
-            </table>
+          <AddProject state={this.state} projSheet={this.state.projectsSheet} click={this.click} ></AddProject>
+          <ProjectsPanel state={this.state} ></ProjectsPanel>
           </div>
         }
       </div>

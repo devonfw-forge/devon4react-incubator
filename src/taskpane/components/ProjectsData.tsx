@@ -31,8 +31,8 @@ const getProjectsData = async (context: Excel.RequestContext, employeeData, stat
   }
 
   // Save the new project in the Excel file
-  const addProj = async (state: any, props: any) => {
-    if (state.newProj !== null) { // Check if the New Project Name is not empty
+  const addProj = async (props: any) => {
+    if (props.state.newProj !== null) { // Check if the New Project Name is not empty
       try {
         await Excel.run(async context => {
           const projectsSheet = context.workbook.worksheets.getItem(props.projSheet.name); // Get the Excel sheet to update
@@ -40,7 +40,7 @@ const getProjectsData = async (context: Excel.RequestContext, employeeData, stat
           const numOfCol = table.columns.getCount(); // Count numbers of Columns in the table
           await context.sync();
           const newProjectVal = []; // Empty array to set the default value of the New Project
-          newProjectVal.push(state.newProj); // Push the name of the New Project in the array
+          newProjectVal.push(props.state.newProj); // Push the name of the New Project in the array
           for (let i = 1; i < numOfCol.value; i++) {
             newProjectVal.push(0); // Set the number of hours to 0 for each Column
           }
