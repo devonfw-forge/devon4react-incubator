@@ -1,9 +1,9 @@
 {
-  "name": "excel-custom-functions",
+  "name": "devon4reat-incubator",
   "version": "2.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OfficeDev/Excel-Custom-Functions.git"
+    "url": "https://github.com/devonfw-forge/devon4react-incubator.git"
   },
   "license": "MIT",
   "config": {
