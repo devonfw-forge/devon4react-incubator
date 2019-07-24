@@ -3,7 +3,7 @@
  * See LICENSE in the project root for license information.
  */
 
-Office.onReady(() => {
+Office.onReady(info => {
   // If needed, Office.js is ready to be called
 });
 
@@ -12,15 +12,7 @@ Office.onReady(() => {
  * @param event 
  */
 function action(event: Office.AddinCommands.Event) {
-  const message: Office.NotificationMessageDetails = {
-    type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage, 
-    message: "Performed action.",
-    icon: "Icon.80x80",
-    persistent: true
-  }
-  
-  // Show a notification message
-  Office.context.mailbox.item.notificationMessages.replaceAsync("action", message);
+  // Your code goes here
 
   // Be sure to indicate when the add-in command function is complete
   event.completed();

@@ -9,29 +9,29 @@ initializeIcons();
 
 let isOfficeInitialized = false;
 
-const title = 'Contoso Task Pane Add-in';
+const title = 'Task Pane Add-in';
 
 const render = (Component) => {
-    ReactDOM.render(
-        <AppContainer>
-            <Component title={title} isOfficeInitialized={isOfficeInitialized} />
-        </AppContainer>,
-        document.getElementById('container')
-    );
+  ReactDOM.render(
+    <AppContainer>
+      <Component title={title} isOfficeInitialized={isOfficeInitialized} />
+    </AppContainer>,
+    document.getElementById('container'),
+  );
 };
 
 /* Render application after Office initializes */
 Office.initialize = () => {
-    isOfficeInitialized = true;
-    render(App);
+  isOfficeInitialized = true;
+  render(App);
 };
 
 /* Initial render showing a progress bar */
 render(App);
 
 if ((module as any).hot) {
-    (module as any).hot.accept('./components/App', () => {
-        const NextApp = require('./components/App').default;
-        render(NextApp);
-    });
+  (module as any).hot.accept('./components/App', () => {
+    const NextApp = require('./components/App').default;
+    render(NextApp);
+  });
 }
