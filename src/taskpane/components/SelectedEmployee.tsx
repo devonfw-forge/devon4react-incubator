@@ -15,6 +15,7 @@ const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
     const activeEmployee = activeSheet.getRange(userCol + activeRow).load("values"); // Get the name of the selected Employee
     await context.sync();
     const data = range.formulas[0][0].split('(')[1].split(',');
+    data[0] = data[0].substring(1, data[0].length - 1);
     data[1] = data[1].split('{')[1];
     data[data.length - 1] = data[data.length - 1].split('}')[0];
     data[1] = data[1].split(';');
@@ -22,6 +23,7 @@ const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
         data.push(hour);
     })
     data.splice(1, 1);
+    
     return {selectedCat, activeEmployee, data};
 };
 

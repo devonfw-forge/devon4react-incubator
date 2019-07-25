@@ -63,7 +63,6 @@ export default class App extends React.Component<
           employeeData.activeEmployee = res.activeEmployee;
           employeeData.data = res.data;
         });
-        console.log('te')
 
         const projectsCol = context.workbook.worksheets
           .getItem(employeeData.data[0])
