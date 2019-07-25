@@ -6,13 +6,16 @@ import { HoursList } from './shared/model/interfaces/HoursList';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 
-export default class App extends React.Component<{}, {
-  projectsSheet: Excel.Worksheet,
-  projects: Excel.Range,
-  hoursList: HoursList[],
-  dataLoaded: boolean,
-  employeeName: string,
-}> {
+export default class App extends React.Component<
+  {},
+  {
+    projectsSheet: Excel.Worksheet;
+    projects: Excel.Range;
+    hoursList: HoursList[];
+    dataLoaded: boolean;
+    employeeName: string;
+  }
+> {
   constructor(props: any, context: Excel.RequestContext) {
     super(props, context);
     handleHourChange.bind(this);
@@ -32,11 +35,11 @@ export default class App extends React.Component<{}, {
 
   // Called every time the user click on a cell
   clickListener = async () => {
-      await Excel.run(async (context) => {
-        context.workbook.worksheets.getFirst().onSelectionChanged.add(this.click); // Check if the selected cell has changed
-        await context.sync()
-      });
-  }
+    await Excel.run(async (context) => {
+      context.workbook.worksheets.getFirst().onSelectionChanged.add(this.click); // Check if the selected cell has changed
+      await context.sync();
+    });
+  };
 
   // Get projects' data of the selected Employee
   click = async () => {
@@ -47,7 +50,7 @@ export default class App extends React.Component<{}, {
           projectsSheet: undefined,
           projects: undefined,
           hoursList: [],
-          dataLoaded: false
+          dataLoaded: false,
         }); // Reset state to empty / false
 
         const employeeData: EmployeeData = {
@@ -60,6 +63,7 @@ export default class App extends React.Component<{}, {
           employeeData.activeEmployee = res.activeEmployee;
           employeeData.data = res.data;
         });
+        console.log('te')
 
         const projectsCol = context.workbook.worksheets
           .getItem(employeeData.data[0])
@@ -81,9 +85,8 @@ export default class App extends React.Component<{}, {
 
         this.setState({
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
-          dataLoaded: true // Set the state dataLoaded to true once the data is ready to be displayed
+          dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
         });
-
       });
     } catch (error) {
       console.error(error);
