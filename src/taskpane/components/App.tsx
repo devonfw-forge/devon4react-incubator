@@ -31,15 +31,14 @@ export default class App extends React.Component<
   // Called once the page is loaded and the components are ready
   componentDidMount() {
     Office.onReady((info) => {
-      // If needed, Office.js is ready to be called
       this.clickListener();
+      this.click();
     });
   }
 
   // Called every time the user click on a cell
   clickListener = async () => {
     await Excel.run(async (context) => {
-      // console.log('Employee listener wroking');
       context.workbook.worksheets.getFirst().onSelectionChanged.add(this.click); // Check if the selected cell has changed
       await context.sync();
     });
@@ -49,7 +48,6 @@ export default class App extends React.Component<
   click = async () => {
     try {
       return Excel.run(async (context) => {
-        // console.log('Employee clicked');
         this.setState({
           projectsSheet: undefined,
           projects: undefined,
