@@ -5,7 +5,7 @@ import { handleHourChange } from './SaveHour';
 import { HoursList } from './shared/model/interfaces/HoursList';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectsPanel } from './ProjectsPanelComponent';
-
+import { ErrorHandler } from './ErrorHandlerComponent';
 export default class App extends React.Component<
   {},
   {
@@ -99,13 +99,14 @@ export default class App extends React.Component<
   render() {
     return (
       <div className="ms-welcome">
+      <ErrorHandler state={this.state}/>
         {this.state.dataLoaded && (
           <div>
-            <AddProject
+            {/* <AddProject
               state={this.state}
               projSheet={this.state.projectsSheet}
               click={this.click}
-            />
+            /> */}
             <ProjectsPanel state={this.state} />
           </div>
         )}
