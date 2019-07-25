@@ -1,6 +1,6 @@
 ﻿/**
  * Adds two numbers.
- * @customfunction 
+ * @customfunction
  * @param first First number
  * @param second Second number
  * @returns The sum of the two numbers.
@@ -11,8 +11,8 @@ function add(first: number, second: number): number {
 
 /**
  * Displays the current time once a second.
- * @customfunction 
- * @param invocation Custom function handler  
+ * @customfunction
+ * @param invocation Custom function handler
  */
 function clock(invocation: CustomFunctions.StreamingInvocation<string>): void {
   const timer = setInterval(() => {
@@ -35,11 +35,14 @@ function currentTime(): string {
 
 /**
  * Increments a value once a second.
- * @customfunction 
+ * @customfunction
  * @param incrementBy Amount to increment
- * @param invocation Custom function handler 
+ * @param invocation Custom function handler
  */
-function increment(incrementBy: number, invocation: CustomFunctions.StreamingInvocation<number>): void {
+function increment(
+  incrementBy: number,
+  invocation: CustomFunctions.StreamingInvocation<number>,
+): void {
   let result = 0;
   const timer = setInterval(() => {
     result += incrementBy;
@@ -61,4 +64,18 @@ function logMessage(message: string): string {
   console.log(message);
 
   return message;
+}
+
+/**
+ * Render the project fte for this employee correlated to the project defined in worksheet.
+ * @customfunction
+ * @param worksheet Worksheet name where the project are defined
+ * @param fte Fte for this employee
+ * @returns Total FTE for this employee
+ */
+function renderer(worksheet: string, fte: number[][]): number {
+  const parsedFte = fte.map((fte) => {
+    return fte[0];
+  });
+  return parsedFte.reduce((acumulated, value) => acumulated + value);
 }

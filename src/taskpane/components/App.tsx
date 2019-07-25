@@ -30,12 +30,16 @@ export default class App extends React.Component<
 
   // Called once the page is loaded and the components are ready
   componentDidMount() {
-    this.clickListener();
+    Office.onReady((info) => {
+      // If needed, Office.js is ready to be called
+      this.clickListener();
+    });
   }
 
   // Called every time the user click on a cell
   clickListener = async () => {
     await Excel.run(async (context) => {
+      // console.log('Employee listener wroking');
       context.workbook.worksheets.getFirst().onSelectionChanged.add(this.click); // Check if the selected cell has changed
       await context.sync();
     });
@@ -44,8 +48,8 @@ export default class App extends React.Component<
   // Get projects' data of the selected Employee
   click = async () => {
     try {
-      return Excel.run(async context => {
-                
+      return Excel.run(async (context) => {
+        // console.log('Employee clicked');
         this.setState({
           projectsSheet: undefined,
           projects: undefined,
@@ -56,7 +60,7 @@ export default class App extends React.Component<
         const employeeData: EmployeeData = {
           category: undefined,
           activeEmployee: undefined,
-          data: undefined
+          data: undefined,
         };
         await getSelectedEmployeeData(context).then((res: any) => {
           employeeData.category = res.selectedCat;
@@ -70,8 +74,11 @@ export default class App extends React.Component<
           .columns.load('items');
 
         await context.sync();
-        const projects: string[][] = projectsCol.items[0].values.slice(1, projectsCol.items[0].values.length);//todo -> get data table sin headers
-        const proj: any = []
+        const projects: string[][] = projectsCol.items[0].values.slice(
+          1,
+          projectsCol.items[0].values.length,
+        ); //todo -> get data table sin headers
+        const proj: any = [];
         employeeData.data
           .slice(1, employeeData.data.length)
           .map((hour: any, i: number) => {
@@ -79,7 +86,7 @@ export default class App extends React.Component<
           });
 
         this.setState({
-          projects: proj // Set the state projects with the projects from the sheet with their data
+          projects: proj, // Set the state projects with the projects from the sheet with their data
         });
 
         this.setState({
@@ -90,16 +97,20 @@ export default class App extends React.Component<
     } catch (error) {
       console.error(error);
     }
-  }
+  };
   render() {
     return (
-      <div className='ms-welcome'>
-        {this.state.dataLoaded &&
-        <div >
-          <AddProject state={this.state} projSheet={this.state.projectsSheet} click={this.click} ></AddProject>
-          <ProjectsPanel state={this.state} ></ProjectsPanel>
+      <div className="ms-welcome">
+        {this.state.dataLoaded && (
+          <div>
+            <AddProject
+              state={this.state}
+              projSheet={this.state.projectsSheet}
+              click={this.click}
+            />
+            <ProjectsPanel state={this.state} />
           </div>
-        }
+        )}
       </div>
     );
   }
