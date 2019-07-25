@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { AddProject } from './AddProjectComponent';
 import { getSelectedEmployeeData } from './SelectedEmployee';
-import { getProjectsData } from './ProjectsData';
-import { setPanelData } from './PanelData';
 import { handleHourChange } from './SaveHour';
 import { HoursList } from './shared/model/interfaces/HoursList';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
-import { ProjectData } from './shared/model/interfaces/ProjectData';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 
 export default class App extends React.Component<{}, {
@@ -20,10 +17,10 @@ export default class App extends React.Component<{}, {
     super(props, context);
     handleHourChange.bind(this);
     this.state = {
-      projectsSheet: null,
-      projects: null,
+      projectsSheet: undefined,
+      projects: undefined,
       hoursList: [],
-      employeeName: null,
+      employeeName: undefined,
       dataLoaded: false,
     };
   }
@@ -45,43 +42,42 @@ export default class App extends React.Component<{}, {
   click = async () => {
     try {
       return Excel.run(async context => {
+                
         this.setState({
-          projectsSheet: null,
-          projects: null,
+          projectsSheet: undefined,
+          projects: undefined,
           hoursList: [],
           dataLoaded: false
         }); // Reset state to empty / false
 
         const employeeData: EmployeeData = {
-          category: null,
-          activeEmployee: null
+          category: undefined,
+          activeEmployee: undefined,
+          data: undefined
         };
         await getSelectedEmployeeData(context).then((res: any) => {
           employeeData.category = res.selectedCat;
           employeeData.activeEmployee = res.activeEmployee;
+          employeeData.data = res.data;
         });
 
-        this.setState({
-          projectsSheet: context.workbook.worksheets.getItem(employeeData.category.values[0][0]).load("name") // Get the Excel sheet containing projects and their data 
-        });
+        const projectsCol = context.workbook.worksheets
+          .getItem(employeeData.data[0])
+          .tables.getItemAt(0)
+          .columns.load('items');
 
-        const projData: ProjectData = {
-          firstCell: null,
-          lastCell: null,
-          employeeCol: null
-        }
-        await getProjectsData(context, employeeData, this.state).then((res: any) => {
-          projData.firstCell = res.first;
-          projData.lastCell = res.last;
-          projData.employeeCol = res.employeeCol;
-        });
-
-        this.setState({
-          projects: this.state.projectsSheet.getRange(projData.firstCell + ":" + projData.lastCell).load("values") // Set the state projects with the projects from the sheet with their data
-        });
         await context.sync();
+        const projects: string[][] = projectsCol.items[0].values.slice(1, projectsCol.items[0].values.length);//todo -> get data table sin headers
+        const proj: any = []
+        employeeData.data
+          .slice(1, employeeData.data.length)
+          .map((hour: any, i: number) => {
+            proj.push({ name: projects[i][0], hours: hour });
+          });
 
-        await setPanelData(context, projData, this.state);
+        this.setState({
+          projects: proj // Set the state projects with the projects from the sheet with their data
+        });
 
         this.setState({
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
@@ -93,12 +89,11 @@ export default class App extends React.Component<{}, {
       console.error(error);
     }
   }
-
   render() {
     return (
       <div className='ms-welcome'>
         {this.state.dataLoaded &&
-        <div>
+        <div >
           <AddProject state={this.state} projSheet={this.state.projectsSheet} click={this.click} ></AddProject>
           <ProjectsPanel state={this.state} ></ProjectsPanel>
           </div>

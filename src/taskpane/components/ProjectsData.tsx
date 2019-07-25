@@ -1,25 +1,21 @@
 // Get Projects' data from other sheets
 const getProjectsData = async (context: Excel.RequestContext, employeeData, state: any) => {
-    const projCol = state.projectsSheet.findAll("Projects", {
-        completeMatch: true,
-        matchCase: false
-    }).load("address"); // Look for the word "Projects" in the sheet with projects and get its cell location
-    const totalCol = state.projectsSheet.findAll("Total", {
-        completeMatch: true,
-        matchCase: false
-    }).load("address"); // Look for the word "Total" in the sheet with projects and get its cell location
-    await context.sync();
-    const firstProjPos = state.projectsSheet.getRange(projCol.address).getRowsBelow(1).load("address"); // Get the sheet and cell location of the first project in the list
-    const lastProjPos = state.projectsSheet.getRange(totalCol.address).getRowsAbove(1).load("address"); // Get the sheet and cell location of the last project in the list
-    await context.sync();
-    const firstProjCell = firstProjPos.address.split("!")[1]; // Get the cell location of the first project in the list
-    const lastProjCell = lastProjPos.address.split("!")[1]; // Get the cell location of the last project in the list
-    const employeeCol = state.projectsSheet.findAll(employeeData.activeEmployee.values[0][0], {
-        completeMatch: true,
-        matchCase: false
-    }).load("address"); // Find the location of the Employee in the sheet containing projects
-    await context.sync();
-    return {first: firstProjCell, last: lastProjCell, employeeCol};
+  const projectsCol = context.workbook.worksheets
+  .getItem(employeeData.data[0])
+  .tables.getItemAt(0)
+  .columns.load('items');
+  
+  await context.sync();
+  const projects: string[][] = projectsCol.items[0].values.slice(1, projectsCol.items[0].values.length);
+  employeeData.data
+  .slice(1, employeeData.data.length)
+  .map((hour: any, i: number) => {
+    state.projects.push({ name: projects[i][0], hours: hour }); // Set the state projects with the projects from the sheet with their data
+  });
+  console.log('test')
+
+  await context.sync();
+  return state;
 };
 
 // Save Projects' data on other sheets

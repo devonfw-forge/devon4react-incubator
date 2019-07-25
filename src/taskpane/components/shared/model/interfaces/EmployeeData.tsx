@@ -1,6 +1,5 @@
 export interface EmployeeData {
-    category: any;
-    activeEmployee: any;
+  category: any;
+  activeEmployee: any;
+  data: any;
 }
-
-  
