@@ -5,6 +5,7 @@ import { handleHourChange } from './SaveHour';
 import { HoursList } from './shared/model/interfaces/HoursList';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectsPanel } from './ProjectsPanelComponent';
+import { ErrorHandling } from './ErrorHandling';
 
 export default class App extends React.Component<
   {},
@@ -14,6 +15,7 @@ export default class App extends React.Component<
     hoursList: HoursList[];
     dataLoaded: boolean;
     employeeName: string;
+    errorMessage: string;
   }
 > {
   constructor(props: any, context: Excel.RequestContext) {
@@ -25,6 +27,7 @@ export default class App extends React.Component<
       hoursList: [],
       employeeName: undefined,
       dataLoaded: false,
+      errorMessage: '',
     };
   }
 
@@ -46,6 +49,9 @@ export default class App extends React.Component<
 
   // Get projects' data of the selected Employee
   click = async () => {
+    // this.setState({
+    //   errorMessage: this.state.errorMessage + 'waka',
+    // });
     try {
       return Excel.run(async (context) => {
         this.setState({
@@ -86,7 +92,7 @@ export default class App extends React.Component<
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
         });
-
+        console.log(employeeData);
         this.setState({
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
           dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
@@ -101,11 +107,12 @@ export default class App extends React.Component<
       <div className="ms-welcome">
         {this.state.dataLoaded && (
           <div>
-            <AddProject
+            {/* <AddProject
               state={this.state}
               projSheet={this.state.projectsSheet}
               click={this.click}
-            />
+            /> */}
+            <ErrorHandling errorMessage={this.state.errorMessage} />
             <ProjectsPanel state={this.state} />
           </div>
         )}
