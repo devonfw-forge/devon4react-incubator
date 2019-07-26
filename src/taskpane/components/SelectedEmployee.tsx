@@ -1,4 +1,8 @@
-const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
+const getSelectedEmployeeData = async (
+  context: Excel.RequestContext,
+  totalSet,
+  updateTotal
+) => {
   const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
   await activeSheet.activate(); // Activate the first Excel sheet
   const range = activeSheet.context.workbook
@@ -12,7 +16,7 @@ const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
   const employeeHeaderAddress = activeSheet
     .findAll('Employee', {
       completeMatch: true,
-      matchCase: false, // Case insensitive
+      matchCase: false // Case insensitive
     })
     .load('address'); // Look for the word "Employee" in the active sheet and get its cell location
   await context.sync();
@@ -27,10 +31,15 @@ const getSelectedEmployeeData = async (context: Excel.RequestContext) => {
   data[1] = data[1].split('{')[1];
   data[data.length - 1] = data[data.length - 1].split('}')[0];
   data[1] = data[1].split(';');
-  data[1].map((hour) => {
+  data[1].map(hour => {
     data.push(hour);
   });
   data.splice(1, 1);
+  if (!totalSet){
+
+    updateTotal(range.values[0][0]);
+  }
+  // const total = range.values[0][0];
 
   return { selectedCat, activeEmployee, data };
 };

@@ -2,24 +2,28 @@ import * as React from 'react';
 import { handleHourChange } from './SaveHour';
 
 export const ProjectsPanel: React.FC<{state}> = (props) => {
+    
     return (
-        <table className='projectsContainer'>
-            <tbody>
-            <tr>
-                <th colSpan={2}>{props.state.employeeName}</th>
-            </tr>
+        <div>
+            <div className='employeeName'>
+                <h2>{props.state.employeeName}</h2>
+            </div>
+        <div className='projectsContainer'>
             {props.state.projects.map((project: any, i: number) => {
                 return (
-                <tr key={i}>
-                    <td>{project.name}</td>
-                    <td id={i.toString()}>
-                        <p suppressContentEditableWarning={true} contentEditable onKeyUp={(event) => handleHourChange(event, i, props.state)}>{project.hours}</p>
-                    </td>
-                </tr>
+                <div className='project' key={i}>
+                    <h3>{project.name}</h3>
+                    <h3 id={i.toString()} suppressContentEditableWarning={true} contentEditable onKeyUp={(event) => handleHourChange(event, i, props.state)}>{project.hours}</h3>
+                </div>
                 )
                 })}
-            </tbody>
-        </table>
+        </div>
+            <div className='total'>
+                <h2>Total</h2>
+                <h2>{props.state.total}</h2>
+            </div>
+        
+        </div>
     )
 }
 
