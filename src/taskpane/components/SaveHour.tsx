@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
 
 //  Save the new hour data in the Excel file
-const save = debounce(async (index: number, projects: any) => {
+const save = async (index: number, projects: any) => {
   try {
     await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getFirst(); // Get the Excel sheet to update
@@ -35,14 +35,14 @@ const save = debounce(async (index: number, projects: any) => {
   } catch (error) {
     console.error(error);
   }
-}, 200); // Wait 0.2 seconds when the function is called before to do it
+}
 
 // Check the value typed by the user in Hours fields
 // Called when the user start typing in Hours fields
 const handleHourChange = async (e: any, index: number, state: any) => {
-  const newValue = Number.parseInt(e.currentTarget.textContent); // Set the value to number, will be NaN if the value is composed of characters which are not numbers
-
-  if (!isNaN(newValue)) {
+  const newValue = Number.parseInt(e.currentTarget.value); // Set the value to number, will be NaN if the value is composed of characters which are not numbers
+  
+  if (!isNaN(newValue) && e.keyCode === 13) {
     // Check if the typed value is a number or NaN
     state.projects[index].hours = newValue.toString(); // Change the hour value with the new value in the state hoursList
     save(index, state.projects); // Calls the function to save the new value in the Excel file

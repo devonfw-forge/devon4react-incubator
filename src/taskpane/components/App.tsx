@@ -1,11 +1,9 @@
 import * as React from 'react';
-// import { AddProject } from './AddProjectComponent';
-import { getSelectedEmployeeData } from './SelectedEmployee';
-import { handleHourChange } from './SaveHour';
-import { HoursList } from './shared/model/interfaces/HoursList';
-import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectsPanel } from './ProjectsPanelComponent';
-// import { ErrorHandler } from './ErrorHandlerComponent';
+import { handleHourChange } from './SaveHour';
+import { getSelectedEmployeeData } from './SelectedEmployee';
+import { EmployeeData } from './shared/model/interfaces/EmployeeData';
+import { HoursList } from './shared/model/interfaces/HoursList';
 export default class App extends React.Component<
   {},
   {
@@ -15,7 +13,6 @@ export default class App extends React.Component<
     hoursList: HoursList[];
     dataLoaded: boolean;
     employeeName: string;
-    totalSet: boolean;
   }
 > {
   constructor(props: any, context: Excel.RequestContext) {
@@ -29,7 +26,6 @@ export default class App extends React.Component<
       hoursList: [],
       employeeName: undefined,
       dataLoaded: false,
-      totalSet: false,
     };
   }
 
@@ -52,7 +48,7 @@ export default class App extends React.Component<
     });
   };
 
-  updateTotal = newTotal => {
+  updateTotal = newTotal => {    
     this.setState({ total: newTotal });
   };
 
@@ -65,11 +61,10 @@ export default class App extends React.Component<
           .getSelectedRange()
           .load(['values']); // Get the selected cell location, value and index of its row
         await context.sync();
-
-        this.updateTotal(range.values[0][0]);
+        if (range.values[0][0] !== '#CALC!') {
+          this.updateTotal(range.values[0][0]);
+        }
       }, 80);
-
-      // this.setState({ total: range.values[0][0] });
     });
   };
 
@@ -77,12 +72,6 @@ export default class App extends React.Component<
   click = async () => {
     try {
       return Excel.run(async context => {
-        this.setState({
-          projectsSheet: undefined,
-          projects: undefined,
-          hoursList: [],
-          dataLoaded: false
-        }); // Reset state to empty / false
 
         const employeeData: EmployeeData = {
           category: undefined,
@@ -90,17 +79,13 @@ export default class App extends React.Component<
           data: undefined,
           total: undefined
         };
-        await getSelectedEmployeeData(context, this.state.totalSet, this.updateTotal).then(
+        await getSelectedEmployeeData(context, this.updateTotal).then(
           (res: any) => {
             employeeData.category = res.selectedCat;
             employeeData.activeEmployee = res.activeEmployee;
             employeeData.data = res.data;
           }
         );
-
-        this.setState({
-          totalSet: true,
-        })
 
         const projectsCol = context.workbook.worksheets
           .getItem(employeeData.data[0])
@@ -123,7 +108,6 @@ export default class App extends React.Component<
           projects: proj, // Set the state projects with the projects from the sheet with their data
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
           dataLoaded: true // Set the state dataLoaded to true once the data is ready to be displayed
-          // total: employeeData.total
         });
       });
     } catch (error) {
@@ -133,14 +117,8 @@ export default class App extends React.Component<
   render() {
     return (
       <div className="ms-welcome">
-        {/* <ErrorHandler state={this.state}/> */}
         {this.state.dataLoaded && (
           <div>
-            {/* <AddProject
-              state={this.state}
-              projSheet={this.state.projectsSheet}
-              click={this.click}
-            /> */}
             <ProjectsPanel state={this.state} />
           </div>
         )}

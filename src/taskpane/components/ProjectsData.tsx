@@ -12,7 +12,6 @@ const getProjectsData = async (context: Excel.RequestContext, employeeData, stat
   .map((hour: any, i: number) => {
     state.projects.push({ name: projects[i][0], hours: hour }); // Set the state projects with the projects from the sheet with their data
   });
-  console.log('test')
 
   await context.sync();
   return state;

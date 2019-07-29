@@ -79,6 +79,10 @@ b {
     font-weight: bold;
 }
 
+#container {
+    overflow-y: hidden;
+}
+
 .employeeName {
     position: fixed;
     top: 0;
@@ -91,13 +95,28 @@ b {
 .projectsContainer {
     width: 100%;
     margin-top: 50px;
-    max-height: calc(100% - 100px);
-    overflow-y: scroll;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+.projectsContainer::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	background-color: #F5F5F5;
+}
+
+.projectsContainer::-webkit-scrollbar {
+	width: 10px;
+	background-color: #F5F5F5;
+}
+
+.projectsContainer::-webkit-scrollbar-thumb {
+	background-color: #000000;
+	border: 2px solid #555555;
 }
 .project {
     display: flex;
 }
-.project > h3 {
+.project > h3, .project > input {
     width: 50%;
     text-align: center;
     border: 1px solid #000;

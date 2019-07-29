@@ -14,6 +14,7 @@ const setPanelData = async (context: Excel.RequestContext, projData, state: any)
         address: hourCell.address
         }); // Set the state hoursList done for each project and the location of its cell in the Projects sheet
     }
+    
 };
 
 export { setPanelData };

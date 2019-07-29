@@ -1,6 +1,5 @@
 const getSelectedEmployeeData = async (
   context: Excel.RequestContext,
-  totalSet,
   updateTotal
 ) => {
   const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
@@ -35,11 +34,10 @@ const getSelectedEmployeeData = async (
     data.push(hour);
   });
   data.splice(1, 1);
-  if (!totalSet){
 
+  if (range.values[0][0] !== '#CALC!') {    
     updateTotal(range.values[0][0]);
   }
-  // const total = range.values[0][0];
 
   return { selectedCat, activeEmployee, data };
 };

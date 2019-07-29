@@ -8,12 +8,12 @@ export const ProjectsPanel: React.FC<{state}> = (props) => {
             <div className='employeeName'>
                 <h2>{props.state.employeeName}</h2>
             </div>
-        <div className='projectsContainer'>
+            <div className='projectsContainer'>
             {props.state.projects.map((project: any, i: number) => {
                 return (
                 <div className='project' key={i}>
                     <h3>{project.name}</h3>
-                    <h3 id={i.toString()} suppressContentEditableWarning={true} contentEditable onKeyUp={(event) => handleHourChange(event, i, props.state)}>{project.hours}</h3>
+                    <input id={i.toString()} key={project.hours} defaultValue={project.hours} onKeyUp={(event) => handleHourChange(event, i, props.state)}/>
                 </div>
                 )
                 })}
