@@ -2,6 +2,7 @@ export const getSelectedEmployeeData = async (
   context: Excel.RequestContext,
   updateTotal,
   setError,
+  setShowTable,
 ) => {
   const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
   await activeSheet.activate(); // Activate the first Excel sheet
@@ -14,6 +15,9 @@ export const getSelectedEmployeeData = async (
   setError(true, 'Select a Cell with Render formula');
   if (!checkFormula.test(range.formulas[0][0])) {
     setError(true, 'Select a Cell with Render formula');
+    setShowTable(false);
+  } else {
+    setShowTable(true);
   }
 
   const selectedCellPos = range.address.split('!')[1]; // Get the selected cell Column and Row
@@ -58,6 +62,5 @@ export const getSelectedEmployeeData = async (
   if (range.values[0][0] !== '#CALC!') {
     updateTotal(range.values[0][0]);
   }
-
   return { selectedCat, activeEmployee, data };
 };

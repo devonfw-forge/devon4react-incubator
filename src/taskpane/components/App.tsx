@@ -19,6 +19,7 @@ export default class App extends React.Component<
       showError: boolean;
       errorMessage: string;
     };
+    showTable: boolean;
   }
 > {
   constructor(props: any, context: Excel.RequestContext) {
@@ -36,6 +37,7 @@ export default class App extends React.Component<
         showError: true,
         errorMessage: '',
       },
+      showTable: true,
     };
   }
 
@@ -45,6 +47,11 @@ export default class App extends React.Component<
         showError: showError,
         errorMessage: errorMessage,
       },
+    });
+  }
+  setShowTable(showTable: boolean) {
+    this.setState({
+      showTable: showTable,
     });
   }
 
@@ -107,6 +114,7 @@ export default class App extends React.Component<
           context,
           this.updateTotal,
           this.setError.bind(this),
+          this.setShowTable.bind(this),
         ).then((res: any) => {
           employeeData.category = res.selectedCat;
           employeeData.activeEmployee = res.activeEmployee;
@@ -161,7 +169,9 @@ export default class App extends React.Component<
     return (
       <div className="ms-welcome">
         <ErrorHandling error={this.state.error}>
-          {this.state.dataLoaded && <ProjectsPanel state={this.state} />}
+          {this.state.dataLoaded && this.state.showTable && (
+            <ProjectsPanel state={this.state} />
+          )}
         </ErrorHandling>
       </div>
     );
