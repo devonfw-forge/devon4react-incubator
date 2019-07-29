@@ -11,11 +11,14 @@ export default class App extends React.Component<
   {},
   {
     projectsSheet: Excel.Worksheet;
-    projects: Excel.Range;
+    projects: any;
     hoursList: HoursList[];
     dataLoaded: boolean;
     employeeName: string;
-    errorMessage: string;
+    error: {
+      showError: boolean;
+      errorMessage: string;
+    };
   }
 > {
   constructor(props: any, context: Excel.RequestContext) {
@@ -27,8 +30,20 @@ export default class App extends React.Component<
       hoursList: [],
       employeeName: undefined,
       dataLoaded: false,
-      errorMessage: '',
+      error: {
+        showError: true,
+        errorMessage: '',
+      },
     };
+  }
+
+  setError(showError: boolean, errorMessage: string) {
+    this.setState({
+      error: {
+        showError: showError,
+        errorMessage: errorMessage,
+      },
+    });
   }
 
   // Called once the page is loaded and the components are ready
@@ -46,7 +61,6 @@ export default class App extends React.Component<
       await context.sync();
     });
   };
-
   // Get projects' data of the selected Employee
   click = async () => {
     // this.setState({
@@ -64,35 +78,56 @@ export default class App extends React.Component<
         const employeeData: EmployeeData = {
           category: undefined,
           activeEmployee: undefined,
-          data: undefined,
+          data: {
+            dataSheet: undefined,
+            fte: undefined,
+          },
         };
-        await getSelectedEmployeeData(context).then((res: any) => {
-          employeeData.category = res.selectedCat;
-          employeeData.activeEmployee = res.activeEmployee;
-          employeeData.data = res.data;
-        });
+        await getSelectedEmployeeData(context, this.setError.bind(this)).then(
+          (res: any) => {
+            employeeData.category = res.selectedCat;
+            employeeData.activeEmployee = res.activeEmployee;
+            employeeData.data = res.data;
+          },
+        );
 
         const projectsCol = context.workbook.worksheets
-          .getItem(employeeData.data[0])
+          .getItem(employeeData.data.dataSheet)
           .tables.getItemAt(0)
           .columns.load('items');
 
         await context.sync();
-        const projects: string[][] = projectsCol.items[0].values.slice(
+        let projectsValue = projectsCol.items[0].values.slice(
           1,
           projectsCol.items[0].values.length,
         ); //todo -> get data table sin headers
-        const proj: any = [];
-        employeeData.data
-          .slice(1, employeeData.data.length)
-          .map((hour: any, i: number) => {
-            proj.push({ name: projects[i][0], hours: hour });
-          });
+
+        if (projectsValue.length < employeeData.data.fte.length) {
+          this.setError(
+            true,
+            'You specified more values than definitions for this employee',
+          );
+        } else if (projectsValue.length > employeeData.data.fte.length) {
+          const diference = projectsValue.length - employeeData.data.fte.length;
+          for (let i = 0; i < diference; i++) {
+            employeeData.data.fte.push('0');
+          }
+        }
+        if (projectsValue.length >= employeeData.data.fte.length) {
+          this.setError(false, '');
+        }
+
+        const proj = projectsValue.map((project: any, idx: number) => {
+          return {
+            name: project[0],
+            hours: employeeData.data.fte[idx],
+          };
+          // proj.push({ name: projects[i][0], hours: hour });
+        });
 
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
         });
-        console.log(employeeData);
         this.setState({
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
           dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
@@ -105,17 +140,9 @@ export default class App extends React.Component<
   render() {
     return (
       <div className="ms-welcome">
-        {this.state.dataLoaded && (
-          <div>
-            {/* <AddProject
-              state={this.state}
-              projSheet={this.state.projectsSheet}
-              click={this.click}
-            /> */}
-            <ErrorHandling errorMessage={this.state.errorMessage} />
-            <ProjectsPanel state={this.state} />
-          </div>
-        )}
+        <ErrorHandling error={this.state.error}>
+          {this.state.dataLoaded && <ProjectsPanel state={this.state} />}
+        </ErrorHandling>
       </div>
     );
   }
