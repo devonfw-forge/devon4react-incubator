@@ -73,7 +73,7 @@ function logMessage(message: string): string {
  * @param fte Fte for this employee
  * @returns Total FTE for this employee
  */
-function renderer(worksheet: string, fte: number[][]): number {
+function render(worksheet: string, fte: number[][]): number {
   const parsedFte = fte.map((fte) => {
     return fte[0];
   });
