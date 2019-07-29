@@ -4,15 +4,21 @@ import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { HoursList } from './shared/model/interfaces/HoursList';
+import { ErrorHandling } from './ErrorHandling';
+
 export default class App extends React.Component<
   {},
   {
     projectsSheet: Excel.Worksheet;
-    projects: Excel.Range;
+    projects: any;
     total: any;
     hoursList: HoursList[];
     dataLoaded: boolean;
     employeeName: string;
+    error: {
+      showError: boolean;
+      errorMessage: string;
+    };
   }
 > {
   constructor(props: any, context: Excel.RequestContext) {
@@ -26,12 +32,25 @@ export default class App extends React.Component<
       hoursList: [],
       employeeName: undefined,
       dataLoaded: false,
+      error: {
+        showError: true,
+        errorMessage: '',
+      },
     };
+  }
+
+  setError(showError: boolean, errorMessage: string) {
+    this.setState({
+      error: {
+        showError: showError,
+        errorMessage: errorMessage,
+      },
+    });
   }
 
   // Called once the page is loaded and the components are ready
   componentDidMount() {
-    Office.onReady(info => {
+    Office.onReady((info) => {
       this.clickListener();
       this.click();
     });
@@ -39,7 +58,7 @@ export default class App extends React.Component<
 
   // Called every time the user click on a cell
   clickListener = async () => {
-    await Excel.run(async context => {
+    await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onSelectionChanged.add(this.click); // Check if the selected cell has changed
       activeSheet.onChanged.add(this.click); // Check if the selected cell data has changed
@@ -48,12 +67,12 @@ export default class App extends React.Component<
     });
   };
 
-  updateTotal = newTotal => {    
+  updateTotal = (newTotal) => {
     this.setState({ total: newTotal });
   };
 
   eventoHandler = async () => {
-    Excel.run(async context => {
+    Excel.run(async (context) => {
       setTimeout(async () => {
         const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
         await activeSheet.activate(); // Activate the first Excel sheet
@@ -70,44 +89,68 @@ export default class App extends React.Component<
 
   // Get projects' data of the selected Employee
   click = async () => {
+    // this.setState({
+    //   errorMessage: this.state.errorMessage + 'waka',
+    // });
     try {
-      return Excel.run(async context => {
-
+      return Excel.run(async (context) => {
         const employeeData: EmployeeData = {
           category: undefined,
           activeEmployee: undefined,
-          data: undefined,
-          total: undefined
+          data: {
+            dataSheet: undefined,
+            fte: undefined,
+          },
+          total: undefined,
         };
-        await getSelectedEmployeeData(context, this.updateTotal).then(
-          (res: any) => {
-            employeeData.category = res.selectedCat;
-            employeeData.activeEmployee = res.activeEmployee;
-            employeeData.data = res.data;
-          }
-        );
+        await getSelectedEmployeeData(
+          context,
+          this.updateTotal,
+          this.setError.bind(this),
+        ).then((res: any) => {
+          employeeData.category = res.selectedCat;
+          employeeData.activeEmployee = res.activeEmployee;
+          employeeData.data = res.data;
+        });
 
         const projectsCol = context.workbook.worksheets
-          .getItem(employeeData.data[0])
+          .getItem(employeeData.data.dataSheet)
           .tables.getItemAt(0)
           .columns.load('items');
 
         await context.sync();
-        const projects: string[][] = projectsCol.items[0].values.slice(
+        let projectsValue = projectsCol.items[0].values.slice(
           1,
-          projectsCol.items[0].values.length
+          projectsCol.items[0].values.length,
         ); //todo -> get data table sin headers
-        const proj: any = [];
-        employeeData.data
-          .slice(1, employeeData.data.length)
-          .map((hour: any, i: number) => {
-            proj.push({ name: projects[i][0], hours: hour });
-          });
+
+        if (projectsValue.length < employeeData.data.fte.length) {
+          this.setError(
+            true,
+            'You specified more values than definitions for this employee',
+          );
+        } else if (projectsValue.length > employeeData.data.fte.length) {
+          const diference = projectsValue.length - employeeData.data.fte.length;
+          for (let i = 0; i < diference; i++) {
+            employeeData.data.fte.push('0');
+          }
+        }
+        if (projectsValue.length >= employeeData.data.fte.length) {
+          this.setError(false, '');
+        }
+
+        const proj = projectsValue.map((project: any, idx: number) => {
+          return {
+            name: project[0],
+            hours: employeeData.data.fte[idx],
+          };
+          // proj.push({ name: projects[i][0], hours: hour });
+        });
 
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
           employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
-          dataLoaded: true // Set the state dataLoaded to true once the data is ready to be displayed
+          dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
         });
       });
     } catch (error) {
@@ -117,11 +160,9 @@ export default class App extends React.Component<
   render() {
     return (
       <div className="ms-welcome">
-        {this.state.dataLoaded && (
-          <div>
-            <ProjectsPanel state={this.state} />
-          </div>
-        )}
+        <ErrorHandling error={this.state.error}>
+          {this.state.dataLoaded && <ProjectsPanel state={this.state} />}
+        </ErrorHandling>
       </div>
     );
   }
