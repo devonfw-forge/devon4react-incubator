@@ -1,5 +1,3 @@
-import { debounce } from 'lodash';
-
 //  Save the new hour data in the Excel file
 const save = async (index: number, projects: any) => {
   try {
@@ -39,7 +37,7 @@ const save = async (index: number, projects: any) => {
 
 // Check the value typed by the user in Hours fields
 // Called when the user start typing in Hours fields
-const handleHourChange = async (e: any, index: number, state: any) => {
+const handleOnChange = async (e: any, index: number, state: any) => {
   const newValue = Number.parseInt(e.currentTarget.value); // Set the value to number, will be NaN if the value is composed of characters which are not numbers
   
   if (!isNaN(newValue) && e.keyCode === 13) {
@@ -49,4 +47,4 @@ const handleHourChange = async (e: any, index: number, state: any) => {
   }
 };
 
-export { handleHourChange };
+export { handleOnChange };

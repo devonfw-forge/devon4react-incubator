@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { handleHourChange } from './SaveHour';
+import { handleOnChange } from './SaveHour';
 
 export const ProjectsPanel: React.FC<{state}> = (props) => {
     
@@ -12,8 +12,8 @@ export const ProjectsPanel: React.FC<{state}> = (props) => {
             {props.state.projects.map((project: any, i: number) => {
                 return (
                 <div className='project' key={i}>
-                    <h3>{project.name}</h3>
-                    <input id={i.toString()} key={project.hours} defaultValue={project.hours} onKeyUp={(event) => handleHourChange(event, i, props.state)}/>
+                    <h3 className='projectName'>{project.name}</h3>
+                    <input id={i.toString()} key={project.hours} defaultValue={project.hours} onKeyUp={(event) => handleOnChange(event, i, props.state)}/>
                 </div>
                 )
                 })}
@@ -26,5 +26,3 @@ export const ProjectsPanel: React.FC<{state}> = (props) => {
         </div>
     )
 }
-
-//todo change function name, or handle name, cambiar el savehour.tsx

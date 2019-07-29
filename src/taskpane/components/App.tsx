@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ProjectsPanel } from './ProjectsPanelComponent';
-import { handleHourChange } from './SaveHour';
+import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { HoursList } from './shared/model/interfaces/HoursList';
@@ -17,7 +17,7 @@ export default class App extends React.Component<
 > {
   constructor(props: any, context: Excel.RequestContext) {
     super(props, context);
-    handleHourChange.bind(this);
+    handleOnChange.bind(this);
 
     this.state = {
       projectsSheet: undefined,
@@ -52,7 +52,7 @@ export default class App extends React.Component<
     this.setState({ total: newTotal });
   };
 
-  eventoHandler = async event => {
+  eventoHandler = async () => {
     Excel.run(async context => {
       setTimeout(async () => {
         const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
