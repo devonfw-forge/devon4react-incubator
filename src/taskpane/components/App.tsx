@@ -15,6 +15,7 @@ export default class App extends React.Component<
     total: number;
     dataLoaded: boolean;
     employeeName: string;
+    employeeCell: string;
     error: {
       showError: boolean;
       errorMessage: string;
@@ -31,6 +32,7 @@ export default class App extends React.Component<
       projects: undefined,
       total: undefined,
       employeeName: undefined,
+      employeeCell: undefined,
       dataLoaded: false,
       error: {
         showError: true,
@@ -116,6 +118,7 @@ export default class App extends React.Component<
         const employeeData: EmployeeData = {
           activeEmployee: undefined,
           data: {
+            employeeCell: undefined,
             dataSheet: undefined,
             value: undefined,
           },
@@ -127,8 +130,7 @@ export default class App extends React.Component<
           this.setError.bind(this),
           this.setShowTable.bind(this),
         ).then((res: any) => {
-          employeeData.activeEmployee =
-            res.activeEmployee.values[0][0];
+          employeeData.activeEmployee = res.activeEmployee.values[0][0];
           employeeData.data = res.data;
         });
 
@@ -170,6 +172,7 @@ export default class App extends React.Component<
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
           employeeName: employeeData.activeEmployee, // Set the state name with the selected Employee
+          employeeCell: employeeData.data.employeeCell, // Set the state name with the selected Employee
           dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
         });
       });

@@ -3,7 +3,11 @@ import { handleOnChange } from './SaveHour';
 import { TOTAL } from './shared/constant';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
 
-export const ProjectsPanel: React.FC<{ state: any; setError: Function; }> = (props) => {
+export const ProjectsPanel: React.FC<{ state: any; setError: Function;}> = (props) => {
+  const newProjects: ProjectData[] = [];
+  props.state.projects.map((project) => {
+    newProjects.push(project);
+  })
   return (
     <div>
       <div className="employeeName">
@@ -18,7 +22,7 @@ export const ProjectsPanel: React.FC<{ state: any; setError: Function; }> = (pro
                 id={i.toString()}
                 key={project.value}
                 defaultValue={project.value.toString()}
-                onKeyUp={(event) => handleOnChange(event, i, props.state, props.setError)}
+                onKeyUp={(event) => handleOnChange(event, i, props.state, props.setError, newProjects)}
               />
             </div>
           );
