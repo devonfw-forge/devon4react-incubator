@@ -139,7 +139,7 @@ export default class App extends React.Component<
           this.setError(
             true,
             'You specified more values than definitions for this employee',
-            'green',
+            'yellow',
           );
         } else if (projectsValue.length > employeeData.data.fte.length) {
           const diference = projectsValue.length - employeeData.data.fte.length;
