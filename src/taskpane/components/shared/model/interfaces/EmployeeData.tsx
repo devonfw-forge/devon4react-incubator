@@ -1,6 +1,7 @@
 export interface EmployeeData {
-  category: any;
-  activeEmployee: any;
-  data: any;
-  total: any;
+  activeEmployee: string;
+  data: {
+    dataSheet: string,
+    value: string[],
+  };
 }

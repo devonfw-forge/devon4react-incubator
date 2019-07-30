@@ -1,18 +1,18 @@
 import * as React from 'react';
+import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
+import { CALC, ERRORS } from './shared/constant';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
-import { HoursList } from './shared/model/interfaces/HoursList';
-import { ErrorHandling } from './ErrorHandling';
+import { ProjectData } from './shared/model/interfaces/ProjectData';
 
 export default class App extends React.Component<
   {},
   {
     projectsSheet: Excel.Worksheet;
-    projects: any;
-    total: any;
-    hoursList: HoursList[];
+    projects: ProjectData[];
+    total: number;
     dataLoaded: boolean;
     employeeName: string;
     error: {
@@ -30,7 +30,6 @@ export default class App extends React.Component<
       projectsSheet: undefined,
       projects: undefined,
       total: undefined,
-      hoursList: [],
       employeeName: undefined,
       dataLoaded: false,
       error: {
@@ -41,12 +40,13 @@ export default class App extends React.Component<
     };
   }
 
-  setError(showError: boolean, errorMessage: string) {
+  setError(showError: boolean, errorMessage: string, loadData: boolean) {
     this.setState({
       error: {
         showError: showError,
         errorMessage: errorMessage,
       },
+      dataLoaded: loadData
     });
   }
   setShowTable(showTable: boolean) {
@@ -57,8 +57,10 @@ export default class App extends React.Component<
 
   // Called once the page is loaded and the components are ready
   componentDidMount() {
-    Office.onReady((info) => {
+    Office.onReady(() => {
       this.clickListener();
+      this.onChangeListener();
+      this.onCalculatedListener();
       this.click();
     });
   }
@@ -68,8 +70,22 @@ export default class App extends React.Component<
     await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onSelectionChanged.add(this.click); // Check if the selected cell has changed
+      await context.sync();
+    });
+  };
+  // Called every time the user change a value in a cell
+  onChangeListener = async () => {
+    await Excel.run(async (context) => {
+      const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onChanged.add(this.click); // Check if the selected cell data has changed
-      activeSheet.onCalculated.add(this.eventoHandler);
+      await context.sync();
+    });
+  };
+  // Called every time the CAP.RENDER function calculate
+  onCalculatedListener = async () => {
+    await Excel.run(async (context) => {
+      const activeSheet = context.workbook.worksheets.getActiveWorksheet();
+      activeSheet.onCalculated.add(this.onCalculatedHandler);
       await context.sync();
     });
   };
@@ -78,16 +94,15 @@ export default class App extends React.Component<
     this.setState({ total: newTotal });
   };
 
-  eventoHandler = async () => {
+  onCalculatedHandler = async () => {
     Excel.run(async (context) => {
       setTimeout(async () => {
-        const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
-        await activeSheet.activate(); // Activate the first Excel sheet
+        const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
         const range = activeSheet.context.workbook
           .getSelectedRange()
           .load(['values']); // Get the selected cell location, value and index of its row
         await context.sync();
-        if (range.values[0][0] !== '#CALC!') {
+        if (range.values[0][0] !== CALC) {
           this.updateTotal(range.values[0][0]);
         }
       }, 80);
@@ -96,28 +111,24 @@ export default class App extends React.Component<
 
   // Get projects' data of the selected Employee
   click = async () => {
-    // this.setState({
-    //   errorMessage: this.state.errorMessage + 'waka',
-    // });
     try {
       return Excel.run(async (context) => {
         const employeeData: EmployeeData = {
-          category: undefined,
           activeEmployee: undefined,
           data: {
             dataSheet: undefined,
-            fte: undefined,
+            value: undefined,
           },
-          total: undefined,
         };
+
         await getSelectedEmployeeData(
           context,
           this.updateTotal,
           this.setError.bind(this),
           this.setShowTable.bind(this),
         ).then((res: any) => {
-          employeeData.category = res.selectedCat;
-          employeeData.activeEmployee = res.activeEmployee;
+          employeeData.activeEmployee =
+            res.activeEmployee.values[0][0];
           employeeData.data = res.data;
         });
 
@@ -130,34 +141,35 @@ export default class App extends React.Component<
         let projectsValue = projectsCol.items[0].values.slice(
           1,
           projectsCol.items[0].values.length,
-        ); //todo -> get data table sin headers
+        ); 
 
-        if (projectsValue.length < employeeData.data.fte.length) {
+        if (projectsValue.length < employeeData.data.value.length) {
           this.setError(
             true,
-            'You specified more values than definitions for this employee',
+            ERRORS.MORE_VALUES,
+            true
           );
-        } else if (projectsValue.length > employeeData.data.fte.length) {
-          const diference = projectsValue.length - employeeData.data.fte.length;
+        } else if (projectsValue.length > employeeData.data.value.length) {
+          const diference = projectsValue.length - employeeData.data.value.length;
           for (let i = 0; i < diference; i++) {
-            employeeData.data.fte.push('0');
+            employeeData.data.value.push('0');
           }
         }
-        if (projectsValue.length >= employeeData.data.fte.length) {
-          this.setError(false, '');
+        
+        if (projectsValue.length >= employeeData.data.value.length) {
+          this.setError(false, '', false);
         }
 
-        const proj = projectsValue.map((project: any, idx: number) => {
+        const proj: ProjectData[] = projectsValue.map((project: string[], idx: number) => {
           return {
             name: project[0],
-            hours: employeeData.data.fte[idx],
+            value: employeeData.data.value[idx],
           };
-          // proj.push({ name: projects[i][0], hours: hour });
         });
 
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
-          employeeName: employeeData.activeEmployee.values[0][0], // Set the state name with the selected Employee
+          employeeName: employeeData.activeEmployee, // Set the state name with the selected Employee
           dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
         });
       });
@@ -170,7 +182,7 @@ export default class App extends React.Component<
       <div className="ms-welcome">
         <ErrorHandling error={this.state.error}>
           {this.state.dataLoaded && this.state.showTable && (
-            <ProjectsPanel state={this.state} />
+            <ProjectsPanel state={this.state} setError={this.setError.bind(this)}/>
           )}
         </ErrorHandling>
       </div>

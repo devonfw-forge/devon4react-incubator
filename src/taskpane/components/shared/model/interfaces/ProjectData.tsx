@@ -1,5 +1,4 @@
 export interface ProjectData {
-    firstCell: any;
-    lastCell: any;
-    employeeCol: any;
+    name: string;
+    value: string;
 }

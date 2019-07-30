@@ -1,29 +1,26 @@
+import { ERRORS, CALC, WORKSHEET_ERRORS } from "./shared/constant";
+
 export const getSelectedEmployeeData = async (
   context: Excel.RequestContext,
   updateTotal,
   setError,
   setShowTable,
 ) => {
-  const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the first Excel sheet
-  await activeSheet.activate(); // Activate the first Excel sheet
+  const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
   const range = activeSheet.context.workbook
-    .getSelectedRange()
-    .load(['address', 'values', 'rowIndex', 'formulas']); // Get the selected cell location, value and index of its row
+  .getSelectedRange()
+  .load(['address', 'values', 'rowIndex', 'formulas']); // Get the selected cell location, value and index of its row
   await context.sync();
-
+  
+  
   const checkFormula = new RegExp('^=CAP.RENDER(.*)', 'gmi');
-  setError(true, 'Select a Cell with Render formula');
   if (!checkFormula.test(range.formulas[0][0])) {
-    setError(true, 'Select a Cell with Render formula');
+    setError(true, ERRORS.INCORRECT_CELL, false);
     setShowTable(false);
   } else {
     setShowTable(true);
   }
 
-  const selectedCellPos = range.address.split('!')[1]; // Get the selected cell Column and Row
-  const selectedCat = activeSheet
-    .getRange(selectedCellPos[0] + '1')
-    .load('values'); // Get the header value of the selected Column
   const employeeHeaderAddress = activeSheet
     .findAll('Employee', {
       completeMatch: true,
@@ -37,30 +34,39 @@ export const getSelectedEmployeeData = async (
     .getRange(userCol + activeRow)
     .load('values'); // Get the name of the selected Employee
   await context.sync();
-  // const data = range.formulas[0][0].split('(')[1].split(',');
-  // data[0] = data[0].substring(1, data[0].length - 1);
-  // data[1] = data[1].split('{')[1];
-  // data[data.length - 1] = data[data.length - 1].split('}')[0];
-  // data[1] = data[1].split(';');
-  // data[1].map(hour => {
-  //   data.push(hour);
 
   const employeeData = range.formulas[0][0].split('(')[1].split(',');
   let data = {
     dataSheet: employeeData[0].substring(1, employeeData[0].length - 1),
-    fte: undefined,
+    value: undefined,
   };
+  
   employeeData[1] = employeeData[1].split('{')[1];
   employeeData[employeeData.length - 1] = employeeData[
     employeeData.length - 1
   ].split('}')[0];
   employeeData[1] = employeeData[1].split(';');
-  data.fte = employeeData[1].map((hour) => {
+  data.value = employeeData[1].map((hour) => {
     return hour;
   });
 
-  if (range.values[0][0] !== '#CALC!') {
+  if (data.dataSheet === '') {
+    setError(true, WORKSHEET_ERRORS.EMPTY, false);
+    setShowTable(false);
+  }
+  context.workbook.worksheets.load('items');
+  await context.sync();
+  const sheetsName = [];
+  context.workbook.worksheets.items.map((sheet) => {
+    sheetsName.push(sheet.name.toLowerCase())
+  });
+  if (data.dataSheet !== '' && sheetsName.indexOf(data.dataSheet.toLowerCase()) === -1) {
+    setError(true, WORKSHEET_ERRORS.NOT_FOUND, false);
+    setShowTable(false);
+  }
+
+  if (range.values[0][0] !== CALC) {
     updateTotal(range.values[0][0]);
   }
-  return { selectedCat, activeEmployee, data };
+  return { activeEmployee, data };
 };

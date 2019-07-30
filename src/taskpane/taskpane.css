@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
  * See LICENSE in the project root for license information.
  */
-
  html,
  body {
      width: 100%;
@@ -10,127 +9,58 @@
      margin: 0;
      padding: 0;
  }
- 
- ul {
-     margin: 0;
-     padding: 0;
- }
- 
- .ms-welcome__header {
-    padding: 20px;
-    padding-bottom: 30px;
-    padding-top: 100px;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    align-items: center;
- }
-
- .ms-welcome__main {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    -webkit-flex-wrap: nowrap;
-    flex-wrap: nowrap;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-flex: 1 0 0;
-    flex: 1 0 0;
-    padding: 10px 20px;
- }
- 
- .ms-welcome__main > h2 {
-     width: 100%;
-     text-align: center;
- }
- 
- .ms-welcome__features {
-     list-style-type: none;
-     margin-top: 20px;
- }
- 
- .ms-welcome__features.ms-List .ms-ListItem {
-     padding-bottom: 20px;
-     display: -webkit-flex;
-     display: flex;
- }
- 
- .ms-welcome__features.ms-List .ms-ListItem > .ms-Icon {
-     margin-right: 10px;
- }
- 
- .ms-welcome__action.ms-Button--hero {
-     margin-top: 30px;
- }
- 
-.ms-Button.ms-Button--hero .ms-Button-label {
-  color: #0078d7;
-}
-
-.ms-Button.ms-Button--hero:hover .ms-Button-label,
-.ms-Button.ms-Button--hero:focus .ms-Button-label{
-  color: #005a9e;
-  cursor: pointer;
-}
-
-b {
-    font-weight: bold;
-}
-
 #container {
     overflow-y: hidden;
 }
-
 .employeeName {
     position: fixed;
     top: 0;
     width: 100%;
+    margin-top: 50px;
     height: 50px;
-    color: #fff;
+    color: #484644;
     text-align: center;
-    background-color: #3f8159;
+    background-color: #EDEBE9;
 }
 .projectsContainer {
     width: 100%;
-    margin-top: 50px;
-    height: calc(100vh - 100px);
+    position: fixed;
+    top: 0;
+    margin-top: 100px;
+    height: calc(100vh - 150px);
     overflow-y: auto;
 }
 .projectsContainer::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
     box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-	background-color: #F5F5F5;
+    background-color: #F5F5F5;
 }
-
 .projectsContainer::-webkit-scrollbar {
-	width: 10px;
-	background-color: #F5F5F5;
+    width: 10px;
+    background-color: #F5F5F5;
 }
-
 .projectsContainer::-webkit-scrollbar-thumb {
-	background-color: #000000;
-	border: 2px solid #555555;
+    background-color: #000000;
+    border: 2px solid #DDDDDD;
 }
 .project {
     display: flex;
 }
 .project > input {
-    background: #e9f5ee;
+    color: #484644;
 }
 .project > .projectName {
-    background: #3f8159;
-    color: #fff;
+    background: #EDEBE9;
+    color: #484644;
 }
-.project:focus-within > * {
-    background: #e9f5ee;
+.project:focus-within > input {
+    background: #DFF6DD;
     color: #252423;
 }
 .project > h3, .project > input {
     width: 50%;
     text-align: center;
-    border: 1px solid #000;
+    border: 1px solid #DDDDDD;
     margin: 0;
     padding: 20px;
 }
@@ -141,23 +71,9 @@ b {
     height: 50px;
     display: flex;
     flex-direction: row;
+    background: #EDEBE9;
     justify-content: space-around;
 }
-tr:nth-of-type(odd) { 
-    background: #eee; 
-}
-th { 
-    background: #333; 
-    color: white; 
-    font-weight: bold; 
-}
-td, th { 
-    padding: 6px; 
-    border: 1px solid #ccc; 
-    text-align: center; 
-    position: relative;
-}
-
 .error-message {
   background-color: #ff7272;
   color: white;

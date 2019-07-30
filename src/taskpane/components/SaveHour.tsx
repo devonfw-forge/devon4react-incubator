@@ -1,5 +1,8 @@
-//  Save the new hour data in the Excel file
-const save = async (index: number, projects: any) => {
+import { HEAD_FORMULA, ERRORS } from "./shared/constant";
+import { ProjectData } from "./shared/model/interfaces/ProjectData";
+
+//  Save the new value data in the Excel file
+const save = async (index: number, projects: ProjectData[]) => {
   try {
     await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getFirst(); // Get the Excel sheet to update
@@ -12,19 +15,19 @@ const save = async (index: number, projects: any) => {
       data[1] = data[1].split('{')[1];
       data[data.length - 1] = data[data.length - 1].split('}')[0];
       data[1] = data[1].split(';');
-      data[1].map((hour) => {
-        data.push(hour);
+      data[1].map((value) => {
+        data.push(value);
       });
       data.splice(1, 1);
-      data[index + 1] = projects[index].hours;
+      data[index + 1] = projects[index].value;
       const formula =
-        '=CAP.RENDER("' +
+        HEAD_FORMULA +
         data[0] +
         '",{' +
         data
           .slice(1, data.length)
-          .map((hour: any) => {
-            return hour;
+          .map((value: number) => {
+            return value;
           })
           .join(';') +
         '})';
@@ -35,15 +38,17 @@ const save = async (index: number, projects: any) => {
   }
 };
 
-// Check the value typed by the user in Hours fields
-// Called when the user start typing in Hours fields
-const handleOnChange = async (e: any, index: number, state: any) => {
-  const newValue = Number.parseInt(e.currentTarget.value); // Set the value to number, will be NaN if the value is composed of characters which are not numbers
-
-  if (!isNaN(newValue) && e.keyCode === 13) {
+// Check the value typed by the user in value fields
+// Called when the user start typing in value fields
+const handleOnChange = async (e: any, index: number, state: any, setError: Function) => {
+  if (!isNaN(e.currentTarget.value) && e.keyCode === 13) {
     // Check if the typed value is a number or NaN
-    state.projects[index].hours = newValue.toString(); // Change the hour value with the new value in the state hoursList
+    state.projects[index].value = e.currentTarget.value; // Change the value value with the new value
     save(index, state.projects); // Calls the function to save the new value in the Excel file
+  } else if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
+    setError(true, ERRORS.VALUE, true);
+  } else if (!isNaN(e.currentTarget.value)) {
+    setError(false, '', true);
   }
 };
 
