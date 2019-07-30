@@ -1,11 +1,12 @@
 import * as React from 'react';
 
 const withErrorHandling = (WrappedComponent) => ({ error, children }) => {
+  const colorMessage = 'color-message-red';
   return (
     <WrappedComponent>
-      {error.showError && (
-        <div className="error-message">{error.errorMessage}</div>
-      )}
+      <div className={'error-message ' + colorMessage}>
+        {error.displayError ? error.errorMessage : ''}
+      </div>
       {children}
     </WrappedComponent>
   );
