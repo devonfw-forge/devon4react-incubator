@@ -18,6 +18,7 @@ export default class App extends React.Component<
     error: {
       showError: boolean;
       errorMessage: string;
+      color: string;
     };
     showTable: boolean;
   }
@@ -36,16 +37,18 @@ export default class App extends React.Component<
       error: {
         showError: true,
         errorMessage: '',
+        color: 'white',
       },
       showTable: true,
     };
   }
 
-  setError(showError: boolean, errorMessage: string) {
+  setError(showError: boolean, errorMessage: string, color: string) {
     this.setState({
       error: {
         showError: showError,
         errorMessage: errorMessage,
+        color: color,
       },
     });
   }
@@ -136,6 +139,7 @@ export default class App extends React.Component<
           this.setError(
             true,
             'You specified more values than definitions for this employee',
+            'green',
           );
         } else if (projectsValue.length > employeeData.data.fte.length) {
           const diference = projectsValue.length - employeeData.data.fte.length;
@@ -144,7 +148,7 @@ export default class App extends React.Component<
           }
         }
         if (projectsValue.length >= employeeData.data.fte.length) {
-          this.setError(false, '');
+          this.setError(false, '', 'white');
         }
 
         const proj = projectsValue.map((project: any, idx: number) => {

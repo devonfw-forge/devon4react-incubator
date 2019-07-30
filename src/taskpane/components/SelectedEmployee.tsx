@@ -13,7 +13,7 @@ export const getSelectedEmployeeData = async (
 
   const checkFormula = new RegExp('^=CAP.RENDER(.*)', 'gmi');
   if (!checkFormula.test(range.formulas[0][0])) {
-    setError(true, 'Select a Cell with Render formula');
+    setError(true, 'Click in a cell to see more info', 'green');
     setShowTable(false);
   } else {
     setShowTable(true);
