@@ -26,10 +26,8 @@ const save = async (index: number, projects: ProjectData[], employeeCell: string
         employeeCell +
         ',"' + data[1] +
         '",{' +
-        data
-          .slice(2, data.length)
-          .map((value: number) => {
-            return value;
+        projects.map((project: ProjectData) => {
+            return project.value;
           })
           .join(';') +
         '})';
@@ -54,21 +52,12 @@ const handleOnChange = async (e: any, index: number, state: any, setError: Funct
     }
     for (let i = 0; i < projs.length; i++) {
         state.projects[i].value = projs[i].value;
-      console.log('state.projects[i] ----->',state.projects[i]);
-      console.log('state.projects[i].value ----->',state.projects[i].value);
-        
     }
-    console.log(state.projects)
-    console.log('this is current target',e.currentTarget.value,'back');
-    
-    // state.projects[index].value = e.currentTarget.value; // Change the value value with the new value
-    // save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
+    save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
   } else if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
     setError(true, ERRORS.VALUE, true);
   } else if (!isNaN(e.currentTarget.value)) {    
     setError(false, '', true);
-    // newProjects[index].value = e.currentTarget.value;
-    // console.log('asdasdasd', newProjects, state.projects);
   }
 };
 
