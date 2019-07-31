@@ -3,32 +3,49 @@ import { handleOnChange } from './SaveHour';
 import { TOTAL } from './shared/constant';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
 
-export const ProjectsPanel: React.FC<{ state: any; setError: Function; setDataLoaded: Function;}> = (props) => {
+export const ProjectsPanel: React.FC<{
+  state: any;
+  setError: Function;
+  setDataLoaded: Function;
+}> = (props) => {
   return (
-    <div>
-      <div className="employeeName">
-        <h2>{props.state.employeeName}</h2>
-      </div>
-      <div className="projectsContainer">
-        {props.state.projects.map((project: ProjectData, i: number) => {
+    <table className="projectGride">
+      <thead className="employeeName">
+        <tr>
+          <th colSpan={2}>{props.state.employeeName}</th>
+        </tr>
+      </thead>
+      <tbody className="projectsContainer">
+        {props.state.projects.map((project: any, i: number) => {
           return (
-            <div className="project" key={i}>
-              <h3 className="projectName">{project.name}</h3>
-              <input
-                id={i.toString()}
-                className="projectFTE"
-                key={project.value}
-                defaultValue={project.value.toString()}
-                onKeyUp={(event) => handleOnChange(event, i, props.state, props.setError, props.setDataLoaded)}
-              />
-            </div>
+            <tr className="project" key={i}>
+              <td className="projectName">{project.name}</td>
+              <td>
+                <input
+                  id={i.toString()}
+                  key={project.value}
+                  defaultValue={project.value}
+                  onKeyUp={(event) =>
+                    handleOnChange(
+                      event,
+                      i,
+                      props.state,
+                      props.setError,
+                      props.setDataLoaded,
+                    )
+                  }
+                />
+              </td>
+            </tr>
           );
         })}
-      </div>
-      <div className="total">
-        <h2>{TOTAL}</h2>
-        <h2>{props.state.total}</h2>
-      </div>
-    </div>
+      </tbody>
+      <tfoot className="total">
+        <tr>
+          <td>{TOTAL}</td>
+          <td>{props.state.total}</td>
+        </tr>
+      </tfoot>
+    </table>
   );
 };

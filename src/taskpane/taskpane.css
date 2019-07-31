@@ -2,80 +2,145 @@
  * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
  * See LICENSE in the project root for license information.
  */
- html,
- body {
-     width: 100%;
-     height: 100%;
-     margin: 0;
-     padding: 0;
- }
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Ubuntu;
+}
+
 #container {
-    overflow-y: hidden;
+  overflow-y: hidden;
 }
-.employeeName {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    margin-top: 50px;
-    height: 50px;
-    color: #484644;
-    text-align: center;
-    background-color: #EDEBE9;
+
+#container,
+.ms-welcome,
+.ms-welcome div {
+  height: 100vh;
 }
-.projectsContainer {
-    width: 100%;
-    position: fixed;
-    top: 0;
-    margin-top: 100px;
-    height: calc(100vh - 150px);
-    overflow-y: auto;
-}
-.projectsContainer::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-    background-color: #F5F5F5;
-}
-.projectsContainer::-webkit-scrollbar {
-    width: 10px;
-    background-color: #F5F5F5;
-}
-.projectsContainer::-webkit-scrollbar-thumb {
-    background-color: #000000;
-    border: 2px solid #DDDDDD;
-}
-.project {
-    display: flex;
-}
-.project > input {
-    color: #484644;
-}
-.project > .projectName {
-    background: #EDEBE9;
-    color: #484644;
-}
-.project:focus-within > input {
-    background: #DFF6DD;
-    color: #252423;
-}
-.project > h3, .project > input {
-    width: 50%;
-    text-align: center;
-    border: 1px solid #DDDDDD;
-    margin: 0;
-    padding: 20px;
-}
-.total {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 50px;
-    display: flex;
-    flex-direction: row;
-    background: #EDEBE9;
-    justify-content: space-around;
-}
+
 .error-message {
-  background-color: #ff7272;
   color: white;
-  padding: 1em;
+  max-height: 50px;
+  height: 12vh;
+  display: flex;
+  align-items: center;
+  padding-left: 24px;
+}
+
+.color-message-red {
+  background-color: #a80000;
+}
+
+.color-message-green {
+  background-color: #217346;
+}
+
+.color-message-yellow {
+  background-color: #fff4ce;
+  color: #323130;
+}
+
+.color-message-white {
+  background-color: #ffffff;
+}
+
+.projectGride,
+thead,
+tr,
+th,
+td,
+input {
+  display: flex;
+}
+
+.projectGride {
+  width: 100%;
+  color: #484644;
+  flex-direction: column;
+  height: 88vh;
+}
+
+td,
+th {
+  align-items: center;
+  height: 46px;
+  font-size: 16px;
+  line-height: 18px;
+  text-align: center;
+  border: 1px solid #dddddd;
+}
+
+.projectGride input {
+  text-align: center;
+  border: none;
+  width: 100%;
+}
+
+.projectGride input:focus {
+  background-color: #dff6dd;
+  outline: 1px solid #dddddd;
+}
+
+.projectGride thead,
+.projectGride tbody td:first-child,
+.projectGride tfoot {
+  background-color: #edebe9;
+}
+
+.projectGride thead {
+  justify-content: center;
+  align-items: center;
+}
+
+.projectGride thead,
+.projectGride thead tr,
+.projectGride thead tr th {
+  width: 100%;
+}
+
+.projectGride thead tr th {
+  justify-content: center;
+  align-items: center;
+}
+
+.projectGride tbody {
+  overflow-y: overlay;
+  overflow-x: hidden;
+}
+
+.projectGride tbody td:first-child,
+.projectGride tfoot td:first-child {
+  display: flex;
+  width: 70%;
+  justify-content: center;
+}
+
+.projectGride tbody td:last-child {
+  display: flex;
+  align-items: stretch;
+  width: 30%;
+}
+
+.projectGride tfoot {
+  margin-top: auto;
+  position: -webkit-sticky;
+  position: sticky;
+  bottom: 0;
+  font-weight: bold;
+  line-height: 20px;
+}
+
+.projectGride tfoot td:first-child {
+  border-right: none;
+}
+
+.projectGride tfoot td:last-child {
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+  border-left: none;
 }

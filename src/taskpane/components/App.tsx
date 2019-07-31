@@ -19,6 +19,7 @@ export default class App extends React.Component<
     error: {
       showError: boolean;
       errorMessage: string;
+      color: string;
     };
     showTable: boolean;
   }
@@ -36,28 +37,30 @@ export default class App extends React.Component<
       dataLoaded: false,
       error: {
         showError: true,
-        errorMessage: ''
+        errorMessage: '',
+        color: 'white',
       },
-      showTable: true
+      showTable: true,
     };
   }
 
-  setError(showError: boolean, errorMessage: string) {
+  setError(showError: boolean, errorMessage: string, color: string) {
     this.setState({
       error: {
         showError: showError,
-        errorMessage: errorMessage
-      }
+        errorMessage: errorMessage,
+        color: color,
+      },
     });
   }
   setDataLoaded(loadData: boolean) {
     this.setState({
-      dataLoaded: loadData
+      dataLoaded: loadData,
     });
   }
   setShowTable(showTable: boolean) {
     this.setState({
-      showTable: showTable
+      showTable: showTable,
     });
   }
 
@@ -73,7 +76,7 @@ export default class App extends React.Component<
 
   // Called every time the user click on a cell
   clickListener = async () => {
-    await Excel.run(async context => {
+    await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onSelectionChanged.add(this.click); // Check if the selected cell has changed
       await context.sync();
@@ -81,7 +84,7 @@ export default class App extends React.Component<
   };
   // Called every time the user change a value in a cell
   onChangeListener = async () => {
-    await Excel.run(async context => {
+    await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onChanged.add(this.click); // Check if the selected cell data has changed
       await context.sync();
@@ -89,19 +92,19 @@ export default class App extends React.Component<
   };
   // Called every time the ADC.DYNACOLUMNS function calculate
   onCalculatedListener = async () => {
-    await Excel.run(async context => {
+    await Excel.run(async (context) => {
       const activeSheet = context.workbook.worksheets.getActiveWorksheet();
       activeSheet.onCalculated.add(this.onCalculatedHandler);
       await context.sync();
     });
   };
 
-  updateTotal = newTotal => {
+  updateTotal = (newTotal) => {
     this.setState({ total: newTotal });
   };
 
   onCalculatedHandler = async () => {
-    Excel.run(async context => {
+    Excel.run(async (context) => {
       setTimeout(async () => {
         const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
         const range = activeSheet.context.workbook
@@ -118,14 +121,14 @@ export default class App extends React.Component<
   // Get projects' data of the selected Employee
   click = async () => {
     try {
-      return Excel.run(async context => {
+      return Excel.run(async (context) => {
         const employeeData: EmployeeData = {
           activeEmployee: undefined,
           data: {
             employeeCell: undefined,
             dataSheet: undefined,
-            value: undefined
-          }
+            value: undefined,
+          },
         };
 
         await getSelectedEmployeeData(
@@ -133,7 +136,7 @@ export default class App extends React.Component<
           this.updateTotal,
           this.setError.bind(this),
           this.setDataLoaded.bind(this),
-          this.setShowTable.bind(this)
+          this.setShowTable.bind(this),
         ).then((res: any) => {
           employeeData.activeEmployee = res.activeEmployee.values[0][0];
           employeeData.data = res.data;
@@ -147,11 +150,15 @@ export default class App extends React.Component<
         await context.sync();
         let projectsValue = projectsCol.items[0].values.slice(
           1,
-          projectsCol.items[0].values.length
+          projectsCol.items[0].values.length,
         );
 
         if (projectsValue.length < employeeData.data.value.length) {
-          this.setError(true, ERRORS.MORE_VALUES);
+          this.setError(
+            true,
+            'You specified more values than definitions for this employee',
+            'yellow',
+          );
           this.setDataLoaded(false);
         } else if (projectsValue.length > employeeData.data.value.length) {
           const diference =
@@ -162,7 +169,7 @@ export default class App extends React.Component<
         }
 
         if (projectsValue.length >= employeeData.data.value.length) {
-          this.setError(false, '');
+          this.setError(false, '', 'white');
           this.setDataLoaded(false);
         }
 
@@ -170,16 +177,16 @@ export default class App extends React.Component<
           (project: string[], idx: number) => {
             return {
               name: project[0],
-              value: employeeData.data.value[idx]
+              value: employeeData.data.value[idx],
             };
-          }
+          },
         );
 
         this.setState({
           projects: proj, // Set the state projects with the projects from the sheet with their data
           employeeName: employeeData.activeEmployee, // Set the state name with the selected Employee
           employeeCell: employeeData.data.employeeCell, // Set the state name with the selected Employee
-          dataLoaded: true // Set the state dataLoaded to true once the data is ready to be displayed
+          dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
         });
       });
     } catch (error) {
