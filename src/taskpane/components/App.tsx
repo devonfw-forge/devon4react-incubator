@@ -154,11 +154,7 @@ export default class App extends React.Component<
         );
 
         if (projectsValue.length < employeeData.data.value.length) {
-          this.setError(
-            true,
-            'You specified more values than definitions for this employee',
-            'yellow',
-          );
+          this.setError(true, ERRORS.MORE_VALUES, 'yellow');
           this.setDataLoaded(false);
         } else if (projectsValue.length > employeeData.data.value.length) {
           const diference =
