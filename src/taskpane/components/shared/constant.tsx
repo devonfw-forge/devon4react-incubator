@@ -1,4 +1,4 @@
-export const HEAD_FORMULA = '=CAP.RENDER(';
+export const HEAD_FORMULA = '=ADC.DYNACOLUMNS(';
 export const ERRORS = {
          VALUE: 'Incorrect value',
          INCORRECT_CELL: 'Select a cell with dynamic column.',

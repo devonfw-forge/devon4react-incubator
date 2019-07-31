@@ -12,7 +12,7 @@ export const getSelectedEmployeeData = async (
   .load(['address', 'values', 'rowIndex', 'formulas']); // Get the selected cell location, value and index of its row
   await context.sync();
   
-  const checkFormula = new RegExp('^=CAP.RENDER(.*)', 'gmi');
+  const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
   if (!checkFormula.test(range.formulas[0][0])) {
     setError(true, ERRORS.INCORRECT_CELL, false);
     setShowTable(false);

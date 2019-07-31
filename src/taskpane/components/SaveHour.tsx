@@ -44,26 +44,33 @@ const save = async (index: number, projects: ProjectData[], employeeCell: string
 const handleOnChange = async (e: any, index: number, state: any, setError: Function, newProjects: ProjectData[]) => {
   const projects = document.getElementsByClassName('projectFTE');
   const projs = new Array();
-  
-  if (!isNaN(e.currentTarget.value) && e.keyCode === 13) {
-    
-    setError(false, '', true);
-    for (let i = 0; i < projects.length; i++) {
-      projs.push(projects[i]);
+  let error = false;
+  for (let i = 0; i < projects.length; i++) {
+    projs.push(projects[i]);
+  }
+  for (let i = 0; i < projs.length; i++) {
+    const reg = new RegExp("[A-Za-z]", "gmi")
+    if (reg.test(projs[i].value) || projs[i].value === '') {
+      setError(true, ERRORS.VALUE, true);
+      error = true;
     }
-    for (let i = 0; i < projs.length; i++) {
-      const reg = new RegExp("[A-Za-z]", "gmi")
-      if (reg.test(projs[i].value)) {
-        setError(true, ERRORS.VALUE, true);
-      } else {
-        state.projects[i].value = projs[i].value;
-      }
-    }
-    save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
-  } else if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
+  }
+
+  if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
+    console.log('1');
+    error = true;
     setError(true, ERRORS.VALUE, true);
-  } else if (!isNaN(e.currentTarget.value)) {    
+  } else if (!isNaN(e.currentTarget.value) && !error) {
+    console.log('2');
     setError(false, '', true);
+  }
+  
+  if (!isNaN(e.currentTarget.value) && e.keyCode === 13 && !state.error.showError) {
+    for (let i = 0; i < projs.length; i++) {
+      state.projects[i].value = projs[i].value;
+    }
+    setError(false, '', true);
+    save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
   }
 };
 
