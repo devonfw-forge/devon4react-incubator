@@ -4,6 +4,7 @@ export const getSelectedEmployeeData = async (
   context: Excel.RequestContext,
   updateTotal,
   setError,
+  setDataLoaded,
   setShowTable,
 ) => {
   const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
@@ -14,7 +15,8 @@ export const getSelectedEmployeeData = async (
   
   const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
   if (!checkFormula.test(range.formulas[0][0])) {
-    setError(true, ERRORS.INCORRECT_CELL, false);
+    setError(true, ERRORS.INCORRECT_CELL);
+    setDataLoaded(false);
     setShowTable(false);
   } else {
     setShowTable(true);
@@ -38,7 +40,8 @@ export const getSelectedEmployeeData = async (
   });
   
   if (data.dataSheet === '') {
-    setError(true, WORKSHEET_ERRORS.EMPTY, false);
+    setError(true, WORKSHEET_ERRORS.EMPTY);
+    setDataLoaded(false);
     setShowTable(false);
   }
   context.workbook.worksheets.load('items');
@@ -51,7 +54,8 @@ export const getSelectedEmployeeData = async (
     sheetsName.push(sheet.name.toLowerCase())
   });
   if (data.dataSheet !== '' && sheetsName.indexOf(data.dataSheet.toLowerCase()) === -1) {
-    setError(true, WORKSHEET_ERRORS.NOT_FOUND, false);
+    setError(true, WORKSHEET_ERRORS.NOT_FOUND);
+    setDataLoaded(false);
     setShowTable(false);
   }
   

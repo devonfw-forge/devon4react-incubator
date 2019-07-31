@@ -41,7 +41,7 @@ const save = async (index: number, projects: ProjectData[], employeeCell: string
 
 // Check the value typed by the user in value fields
 // Called when the user start typing in value fields
-const handleOnChange = async (e: any, index: number, state: any, setError: Function, newProjects: ProjectData[]) => {
+const handleOnChange = async (e: any, index: number, state: any, setError: Function, setDataLoaded: Function) => {
   const projects = document.getElementsByClassName('projectFTE');
   const projs = new Array();
   let error = false;
@@ -51,7 +51,8 @@ const handleOnChange = async (e: any, index: number, state: any, setError: Funct
   for (let i = 0; i < projs.length; i++) {
     const reg = new RegExp("[A-Za-z]", "gmi")
     if (reg.test(projs[i].value) || projs[i].value === '') {
-      setError(true, ERRORS.VALUE, true);
+      setError(true, ERRORS.VALUE);
+      setDataLoaded(true);
       error = true;
     }
   }
@@ -59,17 +60,20 @@ const handleOnChange = async (e: any, index: number, state: any, setError: Funct
   if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
     console.log('1');
     error = true;
-    setError(true, ERRORS.VALUE, true);
+    setError(true, ERRORS.VALUE);
+    setDataLoaded(true);
   } else if (!isNaN(e.currentTarget.value) && !error) {
     console.log('2');
-    setError(false, '', true);
+    setError(false, '');
+    setDataLoaded(true);
   }
   
   if (!isNaN(e.currentTarget.value) && e.keyCode === 13 && !state.error.showError) {
     for (let i = 0; i < projs.length; i++) {
       state.projects[i].value = projs[i].value;
     }
-    setError(false, '', true);
+    setError(false, '');
+    setDataLoaded(true);
     save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
   }
 };
