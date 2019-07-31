@@ -46,12 +46,18 @@ const handleOnChange = async (e: any, index: number, state: any, setError: Funct
   const projs = new Array();
   
   if (!isNaN(e.currentTarget.value) && e.keyCode === 13) {
+    
     setError(false, '', true);
     for (let i = 0; i < projects.length; i++) {
       projs.push(projects[i]);
     }
     for (let i = 0; i < projs.length; i++) {
+      const reg = new RegExp("[A-Za-z]", "gmi")
+      if (reg.test(projs[i].value)) {
+        setError(true, ERRORS.VALUE, true);
+      } else {
         state.projects[i].value = projs[i].value;
+      }
     }
     save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
   } else if (isNaN(e.currentTarget.value) || e.currentTarget.value === '') {
