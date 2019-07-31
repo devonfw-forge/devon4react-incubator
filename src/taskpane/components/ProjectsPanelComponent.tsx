@@ -20,6 +20,7 @@ export const ProjectsPanel: React.FC<{ state: any; setError: Function;}> = (prop
               <h3 className="projectName">{project.name}</h3>
               <input
                 id={i.toString()}
+                className="projectFTE"
                 key={project.value}
                 defaultValue={project.value.toString()}
                 onKeyUp={(event) => handleOnChange(event, i, props.state, props.setError, newProjects)}
