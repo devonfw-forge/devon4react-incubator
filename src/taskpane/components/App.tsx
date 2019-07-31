@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
-import { handleOnChange } from './SaveHour';
+// import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
 import { CALC, ERRORS } from './shared/constant';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
@@ -26,7 +26,7 @@ export default class App extends React.Component<
 > {
   constructor(props: any, context: Excel.RequestContext) {
     super(props, context);
-    handleOnChange.bind(this);
+    // handleOnChange.bind(this);
 
     this.state = {
       projectsSheet: undefined,

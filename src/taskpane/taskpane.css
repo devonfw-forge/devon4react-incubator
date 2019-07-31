@@ -84,6 +84,10 @@ th {
   background-color: #dff6dd;
   outline: 1px solid #dddddd;
 }
+.projectGride input.error-value {
+  background-color: #fde7e9;
+  outline: 1px solid #dddddd;
+}
 
 .projectGride thead,
 .projectGride tbody td:first-child,
