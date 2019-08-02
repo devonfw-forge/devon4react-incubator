@@ -21,7 +21,7 @@ export const getSelectedEmployeeData = async (
   } else {
     setShowTable(true);
   }
-
+   
   const employeeData = range.formulas[0][0].split('(')[1].split(',');
   const activeEmployeeCell = employeeData[0]; // Get the cell reference of the selected Employee
   let data = {
@@ -29,7 +29,7 @@ export const getSelectedEmployeeData = async (
     dataSheet: employeeData[1].substring(1, employeeData[1].length - 1),
     value: undefined,
   };
-
+  
   employeeData[2] = employeeData[2].split('{')[1];
   employeeData[employeeData.length - 1] = employeeData[
     employeeData.length - 1
@@ -57,7 +57,7 @@ export const getSelectedEmployeeData = async (
     data.dataSheet !== '' &&
     sheetsName.indexOf(data.dataSheet.toLowerCase()) === -1
   ) {
-    setError(true, WORKSHEET_ERRORS.NOT_FOUND);
+    setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
     setDataLoaded(false);
     setShowTable(false);
   }

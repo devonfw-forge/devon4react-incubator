@@ -10,3 +10,4 @@ export const WORKSHEET_ERRORS = {
   EMPTY: 'The sheet value is empty',
   NOT_FOUND: 'The sheet does not exist',
 };
+export const DATA_WORKSHEET = 'DynamicColumn';

@@ -15,12 +15,17 @@ export const save = async (
         .load(['address', 'values', 'rowIndex', 'formulas']);
       await context.sync();
       const data = cellToUpdate.formulas[0][0].split('(')[1].split(',');
+      console.log(data[1]); //data 1 es el sheet
+      
       data[1] = data[1].substring(1, data[1].length - 1);
       data[2] = data[2].split('{')[1];
       data[data.length - 1] = data[data.length - 1].split('}')[0];
       data[2] = data[2].split(';');
       data[2].map((value) => {
         data.push(value);
+        console.log('this is data ',data);
+        console.log('this is value',value);
+        
       });
 
       data.splice(2, 1);
@@ -44,53 +49,3 @@ export const save = async (
     console.error(error);
   }
 };
-
-// Check the value typed by the user in value fields
-// Called when the user start typing in value fields
-// const handleOnChange = async (
-//   event: any,
-//   index: number,
-//   state: any,
-//   setError: Function,
-//   setDataLoaded: Function,
-// ) => {
-//   const projects = document.getElementsByClassName('projectFTE');
-//   const projs = new Array();
-//   let error = false;
-//   console.log(projects);
-//   for (let i = 0; i < projects.length; i++) {
-//     projs.push(projects[i]);
-//   }
-//   for (let i = 0; i < projs.length; i++) {
-//     const reg = new RegExp('[A-Za-z]', 'gmi');
-//     if (reg.test(projs[i].value) || projs[i].value === '') {
-//       setError(true, ERRORS.VALUE, 'red');
-//       setDataLoaded(true);
-//       error = true;
-//     }
-//   }
-
-//   if (isNaN(event.currentTarget.value) || event.currentTarget.value === '') {
-//     console.log('1');
-//     error = true;
-//     setError(true, ERRORS.VALUE, 'red');
-//     setDataLoaded(true);
-//   } else if (!isNaN(event.currentTarget.value) && !error) {
-//     console.log('2');
-//     setError(false, '', 'white');
-//     setDataLoaded(true);
-//   }
-
-//   if (
-//     !isNaN(event.currentTarget.value) &&
-//     event.keyCode === 13 &&
-//     !state.error.showError
-//   ) {
-//     for (let i = 0; i < projs.length; i++) {
-//       state.projects[i].value = projs[i].value;
-//     }
-//     setError(false, '', 'white');
-//     setDataLoaded(true);
-//     save(index, state.projects, state.employeeCell); // Calls the function to save the new value in the Excel file
-//   }
-// };

@@ -3,7 +3,7 @@ import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 // import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
-import { CALC, ERRORS } from './shared/constant';
+import { CALC, ERRORS, DATA_WORKSHEET } from './shared/constant';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
 
@@ -141,41 +141,94 @@ export default class App extends React.Component<
           employeeData.activeEmployee = res.activeEmployee.values[0][0];
           employeeData.data = res.data;
         });
+        
+        // const projectsCol = context.workbook.worksheets
+        //   .getItem(employeeData.data.dataSheet)
+        //   .tables.getItemAt(0)
+        //   .columns.load('items');
 
-        const projectsCol = context.workbook.worksheets
-          .getItem(employeeData.data.dataSheet)
+          
+          ////////////////////////////////////////////////
+        // console.log('this is projectsCol',projectsCol);/////
+        /////////////////////////////////////////////////
+ 
+       
+        const projectByTable = context.workbook.worksheets
+          .getItem(DATA_WORKSHEET)
           .tables.getItemAt(0)
-          .columns.load('items');
+          .columns.getItem(employeeData.data.dataSheet)
+          .getDataBodyRange()
+          .load('values');
 
         await context.sync();
-        let projectsValue = projectsCol.items[0].values.slice(
-          1,
-          projectsCol.items[0].values.length,
-        );
 
-        if (projectsValue.length < employeeData.data.value.length) {
-          this.setError(true, ERRORS.MORE_VALUES, 'yellow');
-          this.setDataLoaded(false);
-        } else if (projectsValue.length > employeeData.data.value.length) {
-          const diference =
-            projectsValue.length - employeeData.data.value.length;
-          for (let i = 0; i < diference; i++) {
-            employeeData.data.value.push('0');
-          }
+        let projectTable = projectByTable.values;     //nos muestra los non-billeable de la tabla de DynamicColumn.
+        projectTable = projectTable.filter(String);   //quitamos los espacios sobrantes
+        console.log('this is projectTable',projectTable);
+
+
+        // let projectsValue = projectsCol.items[0].values.slice(
+        //   1,
+        //   projectsCol.items[0].values.length,
+        // );
+        // console.log('this is projectsValue',projectsValue);//Nos carga el tab Non-billable
+        
+
+      if (projectTable.length < employeeData.data.value.length){
+        this.setError(true,ERRORS.MORE_VALUES, 'yellow');
+        this.setDataLoaded(false);
+      }else if( projectTable.length > employeeData.data.value.length) {
+        const diference = projectTable.length - employeeData.data.value.length;
+        for (let i = 0; i < diference; i++) {
+          employeeData.data.value.push('0');
         }
+      }
+      if (projectTable.length >= employeeData.data.value.length) {
+        this.setError(false, '', 'white');
+        this.setDataLoaded(false);
+      }
 
-        if (projectsValue.length >= employeeData.data.value.length) {
-          this.setError(false, '', 'white');
-          this.setDataLoaded(false);
-        }
+      const proj: ProjectData[] = projectTable.map(
+        (project: string[], idx: number) => {
+          return {
+            name: project[0],
+            value: employeeData.data.value[idx],
+          };
+        },
+      );
+      
 
-        const proj: ProjectData[] = projectsValue.map(
-          (project: string[], idx: number) => {
-            return {
-              name: project[0],
-              value: employeeData.data.value[idx],
-            };
-          },
+
+
+        // if (projectsValue.length < employeeData.data.value.length) {
+        //   this.setError(true, ERRORS.MORE_VALUES, 'yellow');
+        //   this.setDataLoaded(false);
+        // } else if (projectsValue.length > employeeData.data.value.length) {
+        //   const diference =
+        //     projectsValue.length - employeeData.data.value.length;
+        //   for (let i = 0; i < diference; i++) {
+        //     employeeData.data.value.push('0');
+        //   }
+        // }
+
+        // if (projectsValue.length >= employeeData.data.value.length) {
+        //   this.setError(false, '', 'white');
+        //   this.setDataLoaded(false);
+        // }
+
+        // const proj: ProjectData[] = projectsValue.map(
+        //   (project: string[], idx: number) => {
+        //     return {
+        //       name: project[0],
+        //       value: employeeData.data.value[idx],
+        //     };
+        //   },
+        // );
+        console.log(proj,'ths is PROJ');
+        console.log(employeeData.activeEmployee,'ths is employeeData.activeEmployee');
+        console.log(
+          employeeData.data.employeeCell,
+          'ths is employeeData.data.employeeCell'
         );
 
         this.setState({
