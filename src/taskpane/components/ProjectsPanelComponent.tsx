@@ -15,6 +15,7 @@ export const ProjectsPanel: React.FC<{
     setError: Function,
     setDataLoaded: Function,
   ) => {
+    const [waka, setwaka] = React.useState(0);
     const projects = document.getElementsByClassName('projectFTE');
     const projs = new Array();
     const reg = new RegExp('[A-Za-z]', 'gmi');

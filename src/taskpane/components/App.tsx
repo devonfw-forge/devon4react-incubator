@@ -3,19 +3,24 @@ import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 // import { handleOnChange } from './SaveHour';
 import { getSelectedEmployeeData } from './SelectedEmployee';
-import { CALC, ERRORS } from './shared/constant';
+import {
+  CALC,
+  ERRORS,
+  WORKSHEET_ERRORS,
+  DATA_WORKSHEET,
+} from './shared/constant';
 import { EmployeeData } from './shared/model/interfaces/EmployeeData';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
 
 export default class App extends React.Component<
   {},
   {
-    projectsSheet: Excel.Worksheet;
-    projects: ProjectData[];
-    total: number;
-    dataLoaded: boolean;
-    employeeName: string;
-    employeeCell: string;
+    employee: {
+      name: string;
+      cell: string;
+      worksheetData: ProjectData[];
+      total: number;
+    };
     error: {
       showError: boolean;
       errorMessage: string;
@@ -29,18 +34,18 @@ export default class App extends React.Component<
     // handleOnChange.bind(this);
 
     this.state = {
-      projectsSheet: undefined,
-      projects: undefined,
-      total: undefined,
-      employeeName: undefined,
-      employeeCell: undefined,
-      dataLoaded: false,
+      employee: {
+        name: '',
+        cell: '',
+        worksheetData: [],
+        total: 0,
+      },
       error: {
-        showError: true,
+        showError: false,
         errorMessage: '',
         color: 'white',
       },
-      showTable: true,
+      showTable: false,
     };
   }
 
@@ -53,56 +58,43 @@ export default class App extends React.Component<
       },
     });
   }
-  setDataLoaded(loadData: boolean) {
-    this.setState({
-      dataLoaded: loadData,
-    });
-  }
+
   setShowTable(showTable: boolean) {
     this.setState({
       showTable: showTable,
     });
   }
 
+  setTotal = (total: number) => {
+    this.setState((prevState) => {
+      let employee = Object.assign({}, prevState.employee);
+      employee.total = total;
+      return { employee };
+    });
+  };
+
   // Called once the page is loaded and the components are ready
   componentDidMount() {
-    Office.onReady(() => {
-      this.clickListener();
-      this.onChangeListener();
-      this.onCalculatedListener();
-      this.click();
-    });
+    Office.onReady(() =>
+      Excel.run(async (context) => {
+        await this.addEventListeners(context);
+        await this.click(context);
+      }),
+    );
   }
 
-  // Called every time the user click on a cell
-  clickListener = async () => {
-    await Excel.run(async (context) => {
-      const activeSheet = context.workbook.worksheets.getActiveWorksheet();
-      activeSheet.onSelectionChanged.add(this.click); // Check if the selected cell has changed
-      await context.sync();
-    });
-  };
-  // Called every time the user change a value in a cell
-  onChangeListener = async () => {
-    await Excel.run(async (context) => {
-      const activeSheet = context.workbook.worksheets.getActiveWorksheet();
-      activeSheet.onChanged.add(this.click); // Check if the selected cell data has changed
-      await context.sync();
-    });
-  };
-  // Called every time the ADC.DYNACOLUMNS function calculate
-  onCalculatedListener = async () => {
-    await Excel.run(async (context) => {
-      const activeSheet = context.workbook.worksheets.getActiveWorksheet();
-      activeSheet.onCalculated.add(this.onCalculatedHandler);
-      await context.sync();
-    });
+  addEventListeners = async (context) => {
+    const activeSheet = context.workbook.worksheets.getActiveWorksheet();
+    // Called every time the user click on a cell
+    activeSheet.onSelectionChanged.add(await this.click(context));
+    // Called every time the user change a value in a cell
+    activeSheet.onChanged.add(await this.click(context));
+    // Called every time the ADC.DYNACOLUMNS function calculate
+    activeSheet.onCalculated.add(await this.onCalculatedHandler);
+    await context.sync();
   };
 
-  updateTotal = (newTotal) => {
-    this.setState({ total: newTotal });
-  };
-
+  // TODO: REFACTOR NEEDED!!!!
   onCalculatedHandler = async () => {
     Excel.run(async (context) => {
       setTimeout(async () => {
@@ -112,79 +104,168 @@ export default class App extends React.Component<
           .load(['values']); // Get the selected cell location, value and index of its row
         await context.sync();
         if (range.values[0][0] !== CALC) {
-          this.updateTotal(range.values[0][0]);
+          this.setTotal(range.values[0][0]);
         }
       }, 80);
     });
   };
 
+  getDefinitions = async (context, columnData): Promise<string[]> => {
+    const dataDefinitions = context.workbook.worksheets
+      .getItem(DATA_WORKSHEET)
+      .tables.getItemAt(0)
+      .columns.getItem(columnData)
+      .getDataBodyRange()
+      .load('values');
+    await context.sync();
+    return dataDefinitions.values.filter(String).map((data) => {
+      return data[0];
+    });
+  };
+
+  parseFormula = (formula: string): [string, string, string[]] => {
+    // return [cell, column, [values]]
+    let parsedFormula = formula.split('(')[1].split(',');
+    parsedFormula[2] = parsedFormula[2].substring(
+      1,
+      parsedFormula[2].length - 2,
+    );
+    parsedFormula[1] = parsedFormula[1].substring(
+      1,
+      parsedFormula[1].length - 1,
+    );
+    return [parsedFormula[0], parsedFormula[1], parsedFormula[2].split(';')];
+  };
+
+  getEmployeeData = async (context) => {
+    const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
+    const range = activeSheet.context.workbook
+      .getSelectedRange()
+      .load(['formulas', 'values']); // Get the selected cell location, value and index of its row
+    await context.sync();
+
+    const formula = range.formulas[0][0];
+    const total = range.values[0][0];
+
+    const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
+    if (!checkFormula.test(formula)) {
+      this.setError(true, ERRORS.INCORRECT_CELL, 'green');
+      this.setShowTable(false);
+    } else {
+      this.setShowTable(true);
+    }
+
+    const [cell, column, dataValues] = await this.parseFormula(formula);
+
+    if (column === '') {
+      this.setError(true, WORKSHEET_ERRORS.EMPTY, 'red');
+      this.setShowTable(false);
+    }
+
+    const dataDefinitions = await this.getDefinitions(context, column);
+
+    if (dataValues.length < dataDefinitions.length) {
+      this.setError(true, ERRORS.MORE_VALUES, 'yellow');
+    } else if (dataValues.length > dataDefinitions.length) {
+      const diference = dataValues.length - dataDefinitions.length;
+      for (let i = 0; i < diference; i++) {
+        dataValues.push('0');
+      }
+    }
+
+    if (dataValues.length >= dataDefinitions.length) {
+      this.setError(false, '', 'white');
+    }
+
+    const data = dataDefinitions.map((definition: string, idx: number) => {
+      return {
+        name: definition,
+        value: dataValues[idx],
+      };
+    });
+
+    context.workbook.worksheets.load('items');
+
+    const employeeNameCell = activeSheet.getRange(cell).load('values');
+    await context.sync();
+
+    const sheetsName = context.workbook.worksheets.items.map((sheet) => {
+      sheet.name.toLowerCase();
+    });
+
+    // TODO: review this validation
+    if (column !== '' && sheetsName.indexOf(column) === -1) {
+      this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
+      this.setShowTable(false);
+    }
+
+    if (total !== CALC) {
+      this.setTotal(range.values[0][0]);
+    }
+    return [employeeNameCell.values, data];
+  };
+
   // Get projects' data of the selected Employee
-  click = async () => {
+  click = async (context) => {
     try {
-      return Excel.run(async (context) => {
-        const employeeData: EmployeeData = {
-          activeEmployee: undefined,
-          data: {
-            employeeCell: undefined,
-            dataSheet: undefined,
-            value: undefined,
-          },
-        };
+      // const employeeData: EmployeeData = {
+      //   activeEmployee: undefined,
+      //   data: {
+      //     employeeCell: undefined,
+      //     dataSheet: undefined,
+      //     value: undefined,
+      //   },
+      // };
 
-        await getSelectedEmployeeData(
-          context,
-          this.updateTotal,
-          this.setError.bind(this),
-          this.setDataLoaded.bind(this),
-          this.setShowTable.bind(this),
-        ).then((res: any) => {
-          employeeData.activeEmployee = res.activeEmployee.values[0][0];
-          employeeData.data = res.data;
-        });
+      // await this.getEmployeeData(context).then((res: any) => {
+      //   employeeData.activeEmployee = res.activeEmployee.values[0][0];
+      //   employeeData.data = res.data;
+      // });
 
-        const projectsCol = context.workbook.worksheets
-          .getItem(employeeData.data.dataSheet)
-          .tables.getItemAt(0)
-          .columns.load('items');
+      const [employeeName, employeeData] = await this.getEmployeeData(context);
 
-        await context.sync();
-        let projectsValue = projectsCol.items[0].values.slice(
-          1,
-          projectsCol.items[0].values.length,
-        );
+      console.log('log Employee: ', employeeName, employeeData);
 
-        if (projectsValue.length < employeeData.data.value.length) {
-          this.setError(true, ERRORS.MORE_VALUES, 'yellow');
-          this.setDataLoaded(false);
-        } else if (projectsValue.length > employeeData.data.value.length) {
-          const diference =
-            projectsValue.length - employeeData.data.value.length;
-          for (let i = 0; i < diference; i++) {
-            employeeData.data.value.push('0');
-          }
-        }
+      // const projectsCol = context.workbook.worksheets
+      //   .getItem(employeeData.data.dataSheet)
+      //   .tables.getItemAt(0)
+      //   .columns.load('items');
 
-        if (projectsValue.length >= employeeData.data.value.length) {
-          this.setError(false, '', 'white');
-          this.setDataLoaded(false);
-        }
+      // await context.sync();
+      // let projectsValue = projectsCol.items[0].values.slice(
+      //   1,
+      //   projectsCol.items[0].values.length,
+      // );
 
-        const proj: ProjectData[] = projectsValue.map(
-          (project: string[], idx: number) => {
-            return {
-              name: project[0],
-              value: employeeData.data.value[idx],
-            };
-          },
-        );
+      // if (projectsValue.length < employeeData.data.value.length) {
+      //   this.setError(true, ERRORS.MORE_VALUES, 'yellow');
+      // } else if (projectsValue.length > employeeData.data.value.length) {
+      //   const diference = projectsValue.length - employeeData.data.value.length;
+      //   for (let i = 0; i < diference; i++) {
+      //     employeeData.data.value.push('0');
+      //   }
+      // }
 
-        this.setState({
-          projects: proj, // Set the state projects with the projects from the sheet with their data
-          employeeName: employeeData.activeEmployee, // Set the state name with the selected Employee
-          employeeCell: employeeData.data.employeeCell, // Set the state name with the selected Employee
-          dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
-        });
-      });
+      // if (projectsValue.length >= employeeData.data.value.length) {
+      //   this.setError(false, '', 'white');
+      // }
+
+      // const proj: ProjectData[] = projectsValue.map(
+      //   (project: string[], idx: number) => {
+      //     return {
+      //       name: project[0],
+      //       value: employeeData.data.value[idx],
+      //     };
+      //   },
+      // );
+
+      // this.setState((prevState) => {
+      //   let employee = Object.assign({}, prevState.employee);
+      //   employee.worksheetData = proj;
+      //   employee.name = employeeData.activeEmployee;
+      //   employee.cell = employeeData.data.employeeCell;
+      //   return { employee };
+      // });
     } catch (error) {
       console.error(error);
     }
@@ -193,13 +274,13 @@ export default class App extends React.Component<
     return (
       <div className="ms-welcome">
         <ErrorHandling error={this.state.error}>
-          {this.state.dataLoaded && this.state.showTable && (
+          {/* {this.state.showTable && (
             <ProjectsPanel
               state={this.state}
               setError={this.setError.bind(this)}
               setDataLoaded={this.setDataLoaded.bind(this)}
             />
-          )}
+          )} */}
         </ErrorHandling>
       </div>
     );
