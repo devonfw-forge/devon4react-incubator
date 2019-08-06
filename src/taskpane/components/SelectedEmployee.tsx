@@ -1,4 +1,5 @@
-import { ERRORS, CALC, WORKSHEET_ERRORS } from './shared/constant';
+import { ERRORS, CALC, WORKSHEET_ERRORS, DATA_WORKSHEET } from './shared/constant';
+import { constants } from 'http2';
 
 export const getSelectedEmployeeData = async (
   context: Excel.RequestContext,
@@ -44,22 +45,30 @@ export const getSelectedEmployeeData = async (
     setDataLoaded(false);
     setShowTable(false);
   }
-  context.workbook.worksheets.load('items');
+  //context.workbook.worksheets.load('items');
   const activeEmployee = activeSheet
     .getRange(activeEmployeeCell)
     .load('values');
+
+  const sheet = context.workbook.worksheets.getItem(DATA_WORKSHEET).tables.getItemAt(0);
+  const headers = sheet.getHeaderRowRange().load('values');
+  //console.log("Columns:", headers);
+
   await context.sync();
-  const sheetsName = [];
-  context.workbook.worksheets.items.map((sheet) => {
-    sheetsName.push(sheet.name.toLowerCase());
+  const sheetsName = DATA_WORKSHEET;
+  let match = false;
+  headers.values[0].forEach(value => {
+    if (data.dataSheet.toLowerCase().includes(value.toLowerCase())) {
+      match = true;
+    }
   });
   if (
-    data.dataSheet !== '' &&
-    sheetsName.indexOf(data.dataSheet.toLowerCase()) === -1
+    data.dataSheet != '' &&
+    !match
   ) {
     setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
     setDataLoaded(false);
-    setShowTable(false);
+    setShowTable(false);        
   }
 
   if (range.values[0][0] !== CALC) {

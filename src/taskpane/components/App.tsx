@@ -236,6 +236,7 @@ export default class App extends React.Component<
           employeeName: employeeData.activeEmployee, // Set the state name with the selected Employee
           employeeCell: employeeData.data.employeeCell, // Set the state name with the selected Employee
           dataLoaded: true, // Set the state dataLoaded to true once the data is ready to be displayed
+          showTable: true
         });
       });
     } catch (error) {
