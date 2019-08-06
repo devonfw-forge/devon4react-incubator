@@ -8,6 +8,6 @@ export const CALC = '#CALC!';
 export const TOTAL = 'Total';
 export const WORKSHEET_ERRORS = {
   EMPTY: 'The sheet value is empty',
-  NOT_FOUND: 'The sheet does not exist',
+  NOT_FOUND: 'The worksheet does not exist',
 };
 export const DATA_WORKSHEET = 'DynamicColumns';

@@ -17,7 +17,6 @@ export default class App extends React.Component<
   {
     employee: {
       name: string;
-      cell: string;
       worksheetData: ProjectData[];
       total: number;
     };
@@ -36,7 +35,6 @@ export default class App extends React.Component<
     this.state = {
       employee: {
         name: '',
-        cell: '',
         worksheetData: [],
         total: 0,
       },
@@ -77,50 +75,91 @@ export default class App extends React.Component<
   componentDidMount() {
     Office.onReady(() =>
       Excel.run(async (context) => {
-        await this.addEventListeners(context);
-        await this.click(context);
+        try {
+          await this.addEventListeners(context);
+          await this.click(context);
+        } catch (error) {
+          console.error(error);
+        }
       }),
     );
   }
 
   addEventListeners = async (context) => {
     const activeSheet = context.workbook.worksheets.getActiveWorksheet();
-    // Called every time the user click on a cell
-    activeSheet.onSelectionChanged.add(await this.click(context));
-    // Called every time the user change a value in a cell
-    activeSheet.onChanged.add(await this.click(context));
-    // Called every time the ADC.DYNACOLUMNS function calculate
-    activeSheet.onCalculated.add(await this.onCalculatedHandler);
-    await context.sync();
+    try {
+      // Called every time the user click on a cell
+      activeSheet.onSelectionChanged.add(
+        async () => await this.onSelectionChangedHandler(context),
+      );
+      // activeSheet.onSelectionChanged.add(() => console.log('waka'));
+      // Called every time the user change a value in a cell
+      activeSheet.onChanged.add(async () => await this.click(context));
+      // Called every time the ADC.DYNACOLUMNS function calculate
+      activeSheet.onCalculated.add(
+        async () => await this.onCalculatedHandler(context, activeSheet),
+      );
+      await context.sync();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // TODO: REFACTOR NEEDED!!!!
-  onCalculatedHandler = async () => {
-    Excel.run(async (context) => {
-      setTimeout(async () => {
-        const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
-        const range = activeSheet.context.workbook
-          .getSelectedRange()
-          .load(['values']); // Get the selected cell location, value and index of its row
-        await context.sync();
-        if (range.values[0][0] !== CALC) {
-          this.setTotal(range.values[0][0]);
-        }
-      }, 80);
-    });
+  onCalculatedHandler = async (context, activeSheet) => {
+    setTimeout(async () => {
+      const range = activeSheet.context.workbook
+        .getSelectedRange()
+        .load(['values']); // Get the selected cell location, value and index of its row
+      await context.sync();
+      if (range.values[0][0] !== CALC) {
+        this.setTotal(range.values[0][0]);
+      }
+    }, 80);
+  };
+
+  onSelectionChangedHandler = async (context) => {
+    console.log('waka');
+    await this.click(context);
   };
 
   getDefinitions = async (context, columnData): Promise<string[]> => {
-    const dataDefinitions = context.workbook.worksheets
+    const dataDefinitionsColumns = context.workbook.worksheets
       .getItem(DATA_WORKSHEET)
-      .tables.getItemAt(0)
-      .columns.getItem(columnData)
-      .getDataBodyRange()
+      .tables.getItemAt(0);
+
+    let dataDefinitionsHeaders = dataDefinitionsColumns
+      .getHeaderRowRange()
       .load('values');
+
     await context.sync();
-    return dataDefinitions.values.filter(String).map((data) => {
-      return data[0];
-    });
+
+    dataDefinitionsHeaders = dataDefinitionsHeaders.values
+      .filter(String)
+      .map((data) => {
+        return data[0];
+      });
+
+    if (
+      columnData !== '' &&
+      dataDefinitionsHeaders.indexOf(columnData) === -1
+    ) {
+      this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
+      this.setShowTable(false);
+
+      return [''];
+    } else {
+      const dataDefinitionsValues = dataDefinitionsColumns.columns
+        .getItem(columnData)
+        .getDataBodyRange()
+        .load('values');
+
+      await context.sync();
+
+      return dataDefinitionsValues.values.filter(String).map((data) => {
+        return data[0];
+      });
+    }
   };
 
   parseFormula = (formula: string): [string, string, string[]] => {
@@ -138,134 +177,92 @@ export default class App extends React.Component<
   };
 
   getEmployeeData = async (context) => {
-    const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
-    const range = activeSheet.context.workbook
-      .getSelectedRange()
-      .load(['formulas', 'values']); // Get the selected cell location, value and index of its row
-    await context.sync();
+    try {
+      const activeSheet = context.workbook.worksheets.getActiveWorksheet(); //Get the active Excel sheet
+      const range = activeSheet.context.workbook
+        .getSelectedRange()
+        .load(['formulas', 'values']); // Get the selected cell location, value and index of its row
+      await context.sync();
 
-    const formula = range.formulas[0][0];
-    const total = range.values[0][0];
+      const formula = range.formulas[0][0];
+      const total = range.values[0][0];
 
-    const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
-    if (!checkFormula.test(formula)) {
-      this.setError(true, ERRORS.INCORRECT_CELL, 'green');
-      this.setShowTable(false);
-    } else {
-      this.setShowTable(true);
-    }
-
-    const [cell, column, dataValues] = await this.parseFormula(formula);
-
-    if (column === '') {
-      this.setError(true, WORKSHEET_ERRORS.EMPTY, 'red');
-      this.setShowTable(false);
-    }
-
-    const dataDefinitions = await this.getDefinitions(context, column);
-
-    if (dataValues.length < dataDefinitions.length) {
-      this.setError(true, ERRORS.MORE_VALUES, 'yellow');
-    } else if (dataValues.length > dataDefinitions.length) {
-      const diference = dataValues.length - dataDefinitions.length;
-      for (let i = 0; i < diference; i++) {
-        dataValues.push('0');
+      const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
+      if (!checkFormula.test(formula)) {
+        this.setError(true, ERRORS.INCORRECT_CELL, 'green');
+        this.setShowTable(false);
+      } else {
+        this.setShowTable(true);
       }
+
+      const [cell, column, dataValues] = await this.parseFormula(formula);
+
+      if (column === '') {
+        this.setError(true, WORKSHEET_ERRORS.EMPTY, 'red');
+        this.setShowTable(false);
+      }
+
+      const dataDefinitions = await this.getDefinitions(context, column);
+
+      const worksheetProxi = context.workbook.worksheets.load('items');
+      const employeeNameCell = activeSheet.getRange(cell).load('values');
+      await context.sync();
+
+      const sheetsName = worksheetProxi.items.map((sheet) =>
+        sheet.name.toLowerCase(),
+      );
+      if (
+        column !== '' &&
+        sheetsName.indexOf(DATA_WORKSHEET.toLowerCase()) === -1
+      ) {
+        this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
+        this.setShowTable(false);
+      }
+
+      if (dataValues.length < dataDefinitions.length) {
+        const diference = dataDefinitions.length - dataValues.length;
+        for (let i = 0; i < diference; i++) {
+          dataValues.push('0');
+        }
+      } else if (dataValues.length > dataDefinitions.length) {
+        this.setError(true, ERRORS.MORE_VALUES, 'yellow');
+      }
+
+      if (dataValues.length >= dataDefinitions.length) {
+        this.setError(false, '', 'white');
+      }
+
+      const data = dataDefinitions.map((definition: string, idx: number) => {
+        return {
+          name: definition,
+          value: dataValues[idx],
+        };
+      });
+
+      // TODO: review this validation
+
+      if (total !== CALC) {
+        this.setTotal(range.values[0][0]);
+      }
+      return [employeeNameCell.values, data];
+    } catch (error) {
+      console.error(error);
     }
-
-    if (dataValues.length >= dataDefinitions.length) {
-      this.setError(false, '', 'white');
-    }
-
-    const data = dataDefinitions.map((definition: string, idx: number) => {
-      return {
-        name: definition,
-        value: dataValues[idx],
-      };
-    });
-
-    context.workbook.worksheets.load('items');
-
-    const employeeNameCell = activeSheet.getRange(cell).load('values');
-    await context.sync();
-
-    const sheetsName = context.workbook.worksheets.items.map((sheet) => {
-      sheet.name.toLowerCase();
-    });
-
-    // TODO: review this validation
-    if (column !== '' && sheetsName.indexOf(column) === -1) {
-      this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
-      this.setShowTable(false);
-    }
-
-    if (total !== CALC) {
-      this.setTotal(range.values[0][0]);
-    }
-    return [employeeNameCell.values, data];
   };
 
   // Get projects' data of the selected Employee
   click = async (context) => {
     try {
-      // const employeeData: EmployeeData = {
-      //   activeEmployee: undefined,
-      //   data: {
-      //     employeeCell: undefined,
-      //     dataSheet: undefined,
-      //     value: undefined,
-      //   },
-      // };
-
-      // await this.getEmployeeData(context).then((res: any) => {
-      //   employeeData.activeEmployee = res.activeEmployee.values[0][0];
-      //   employeeData.data = res.data;
-      // });
-
       const [employeeName, employeeData] = await this.getEmployeeData(context);
 
-      console.log('log Employee: ', employeeName, employeeData);
+      this.setState((prevState) => {
+        let employee = Object.assign({}, prevState.employee);
+        employee.name = employeeName;
+        employee.worksheetData = employeeData;
+        return { employee };
+      });
 
-      // const projectsCol = context.workbook.worksheets
-      //   .getItem(employeeData.data.dataSheet)
-      //   .tables.getItemAt(0)
-      //   .columns.load('items');
-
-      // await context.sync();
-      // let projectsValue = projectsCol.items[0].values.slice(
-      //   1,
-      //   projectsCol.items[0].values.length,
-      // );
-
-      // if (projectsValue.length < employeeData.data.value.length) {
-      //   this.setError(true, ERRORS.MORE_VALUES, 'yellow');
-      // } else if (projectsValue.length > employeeData.data.value.length) {
-      //   const diference = projectsValue.length - employeeData.data.value.length;
-      //   for (let i = 0; i < diference; i++) {
-      //     employeeData.data.value.push('0');
-      //   }
-      // }
-
-      // if (projectsValue.length >= employeeData.data.value.length) {
-      //   this.setError(false, '', 'white');
-      // }
-
-      // const proj: ProjectData[] = projectsValue.map(
-      //   (project: string[], idx: number) => {
-      //     return {
-      //       name: project[0],
-      //       value: employeeData.data.value[idx],
-      //     };
-      //   },
-      // );
-
-      // this.setState((prevState) => {
-      //   let employee = Object.assign({}, prevState.employee);
-      //   employee.worksheetData = proj;
-      //   employee.name = employeeData.activeEmployee;
-      //   employee.cell = employeeData.data.employeeCell;
-      //   return { employee };
-      // });
+      this.setShowTable(true);
     } catch (error) {
       console.error(error);
     }
@@ -274,13 +271,13 @@ export default class App extends React.Component<
     return (
       <div className="ms-welcome">
         <ErrorHandling error={this.state.error}>
-          {/* {this.state.showTable && (
+          {this.state.showTable && (
             <ProjectsPanel
-              state={this.state}
+              employee={this.state.employee}
               setError={this.setError.bind(this)}
-              setDataLoaded={this.setDataLoaded.bind(this)}
+              setDataLoaded={this.setShowTable.bind(this)}
             />
-          )} */}
+          )}
         </ErrorHandling>
       </div>
     );

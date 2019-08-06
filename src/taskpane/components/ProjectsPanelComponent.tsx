@@ -2,9 +2,14 @@ import * as React from 'react';
 import { save } from './SaveHour';
 import { TOTAL } from './shared/constant';
 import { ERRORS } from './shared/constant';
+import { ProjectData } from './shared/model/interfaces/ProjectData';
 
 export const ProjectsPanel: React.FC<{
-  state: any;
+  employee: {
+    name: string;
+    worksheetData: ProjectData[];
+    total: number;
+  };
   setError: Function;
   setDataLoaded: Function;
 }> = (props) => {
@@ -15,7 +20,6 @@ export const ProjectsPanel: React.FC<{
     setError: Function,
     setDataLoaded: Function,
   ) => {
-    const [waka, setwaka] = React.useState(0);
     const projects = document.getElementsByClassName('projectFTE');
     const projs = new Array();
     const reg = new RegExp('[A-Za-z]', 'gmi');
@@ -32,19 +36,19 @@ export const ProjectsPanel: React.FC<{
     }
 
     if (isNaN(event.currentTarget.value) || event.currentTarget.value === '') {
-      props.state.projects[event.currentTarget.id].error = true;
+      props.employee.worksheetData[event.currentTarget.id].error = true;
       error = true;
       setError(true, ERRORS.VALUE, 'red');
       setDataLoaded(true);
     } else if (!isNaN(event.currentTarget.value) && !error) {
-      props.state.projects[event.currentTarget.id].error = false;
+      props.employee.worksheetData[event.currentTarget.id].error = false;
       setError(false, '', 'white');
       setDataLoaded(true);
     } else if (
       !isNaN(event.currentTarget.value) &&
       !reg.test(event.currentTarget.value)
     ) {
-      props.state.projects[event.currentTarget.id].error = false;
+      props.employee.worksheetData[event.currentTarget.id].error = false;
     }
 
     if (
@@ -65,27 +69,27 @@ export const ProjectsPanel: React.FC<{
     <table className="projectGride">
       <thead className="employeeName">
         <tr>
-          <th colSpan={2}>{props.state.employeeName}</th>
+          <th colSpan={2}>{props.employee.name}</th>
         </tr>
       </thead>
       <tbody className="projectsContainer">
-        {props.state.projects.map((project: any, i: number) => {
+        {props.employee.worksheetData.map((definition: any, i: number) => {
           return (
             <tr className="project" key={i}>
-              <td className="projectName">{project.name}</td>
+              <td className="projectName">{definition.name}</td>
               <td>
                 <input
                   id={i.toString()}
-                  key={project}
+                  key={definition}
                   className={
-                    project.error ? 'projectFTE error-value' : 'projectFTE'
+                    definition.error ? 'projectFTE error-value' : 'projectFTE'
                   }
-                  defaultValue={project.value}
+                  defaultValue={definition.value}
                   onKeyUp={(event) =>
                     handleOnChange(
                       event,
                       i,
-                      props.state,
+                      props.employee,
                       props.setError,
                       props.setDataLoaded,
                     )
@@ -99,7 +103,7 @@ export const ProjectsPanel: React.FC<{
       <tfoot className="total">
         <tr>
           <td>{TOTAL}</td>
-          <td>{props.state.total}</td>
+          <td>{props.employee.total}</td>
         </tr>
       </tfoot>
     </table>
