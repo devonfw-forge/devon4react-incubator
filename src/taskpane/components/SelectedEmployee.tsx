@@ -58,7 +58,7 @@ export const getSelectedEmployeeData = async (
   const sheetsName = DATA_WORKSHEET;
   let match = false;
   headers.values[0].forEach(value => {
-    if (data.dataSheet.toLowerCase().includes(value.toLowerCase())) {
+    if (data.dataSheet.toLowerCase().includes(value.toLowerCase()) && data.dataSheet.toLowerCase() == value.toLowerCase()) {
       match = true;
     }
   });
