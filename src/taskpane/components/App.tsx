@@ -8,25 +8,16 @@ import {
   WORKSHEET_ERRORS,
   DATA_WORKSHEET,
 } from './shared/constant';
-import { EmployeeData } from './shared/model/interfaces/EmployeeData';
-import { ProjectData } from './shared/model/interfaces/ProjectData';
+import { Employee } from './shared/model/interfaces/Employee';
+import { TableError } from './shared/model/interfaces/Error';
 
-export default class App extends React.Component<
-  {},
-  {
-    employee: {
-      name: string;
-      worksheetData: ProjectData[];
-      total: number;
-    };
-    error: {
-      showError: boolean;
-      errorMessage: string;
-      color: string;
-    };
-    showTable: boolean;
-  }
-> {
+interface isState {
+  employee: Employee;
+  error: TableError;
+  showTable: boolean;
+}
+
+export default class App extends React.Component<{}, isState> {
   constructor(props: any, context: Excel.RequestContext) {
     super(props, context);
     // handleOnChange.bind(this);
@@ -35,6 +26,7 @@ export default class App extends React.Component<
       employee: {
         name: '',
         worksheetData: [],
+        cell: '',
         total: 0,
       },
       error: {
@@ -243,7 +235,7 @@ export default class App extends React.Component<
       if (total !== CALC) {
         this.setTotal(range.values[0][0]);
       }
-      return [employeeNameCell.values, data];
+      return [employeeNameCell.values, cell, data];
     } catch (error) {
       console.error(error);
     }
@@ -252,12 +244,17 @@ export default class App extends React.Component<
   // Get projects' data of the selected Employee
   click = async (context) => {
     try {
-      const [employeeName, employeeData] = await this.getEmployeeData(context);
+      const [
+        employeeName,
+        employeeCell,
+        employeeData,
+      ] = await this.getEmployeeData(context);
 
       this.setState((prevState) => {
         let employee = Object.assign({}, prevState.employee);
         employee.name = employeeName;
         employee.worksheetData = employeeData;
+        employee.cell = employeeCell;
         return { employee };
       });
 
@@ -272,6 +269,7 @@ export default class App extends React.Component<
         <ErrorHandling error={this.state.error}>
           {this.state.showTable && (
             <ProjectsPanel
+              error={this.state.error}
               employee={this.state.employee}
               setError={this.setError.bind(this)}
               setDataLoaded={this.setShowTable.bind(this)}
