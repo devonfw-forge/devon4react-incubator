@@ -62,6 +62,11 @@ export const getSelectedEmployeeData = async (
       match = true;
     }
   });
+  if(data.dataSheet === ""){
+    setError(true, WORKSHEET_ERRORS.EMPTY, 'red');
+    setDataLoaded(false);
+    setShowTable(false); 
+  }
   if (
     data.dataSheet != '' &&
     !match
