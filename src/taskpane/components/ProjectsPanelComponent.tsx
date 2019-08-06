@@ -1,23 +1,17 @@
 import * as React from 'react';
 import { TOTAL, HEAD_FORMULA } from './shared/constant';
-import { ERRORS } from './shared/constant';
 import { ProjectData } from './shared/model/interfaces/ProjectData';
 import { Employee } from './shared/model/interfaces/Employee';
-import { TableError } from './shared/model/interfaces/Error';
 
 export const ProjectsPanel: React.FC<{
   employee: Employee;
-  error: TableError;
   setError: Function;
-  setDataLoaded: Function;
 }> = (props) => {
   const handleOnChange = async (
     event: any,
     index: number,
     employee: Employee,
-    error: TableError,
     setError: Function,
-    setDataLoaded: Function,
   ) => {
     const projects = document.getElementsByClassName('projectFTE');
     const projs = new Array();
@@ -28,8 +22,8 @@ export const ProjectsPanel: React.FC<{
     }
     for (let i = 0; i < projs.length; i++) {
       if (reg.test(projs[i].value) || projs[i].value === '') {
-        setError(true, ERRORS.VALUE, 'red');
-        setDataLoaded(true);
+        // Set error incorrect value
+        setError(true, 2);
         errors = true;
       }
     }
@@ -37,29 +31,27 @@ export const ProjectsPanel: React.FC<{
     if (isNaN(event.currentTarget.value) || event.currentTarget.value === '') {
       props.employee.worksheetData[event.currentTarget.id].error = true;
       errors = true;
-      setError(true, ERRORS.VALUE, 'red');
-      setDataLoaded(true);
+      // Set error incorrect value
+      setError(true, 2);
     } else if (!isNaN(event.currentTarget.value) && !errors) {
       props.employee.worksheetData[event.currentTarget.id].error = false;
-      setError(false, '', 'white');
-      setDataLoaded(true);
+      // Remove error incorrect value
+      setError(false, 2);
     } else if (
       !isNaN(event.currentTarget.value) &&
       !reg.test(event.currentTarget.value)
     ) {
       props.employee.worksheetData[event.currentTarget.id].error = false;
+      // Remove error incorrect value
+      setError(false, 2);
     }
 
-    if (
-      !isNaN(event.currentTarget.value) &&
-      event.keyCode === 13 &&
-      !error.showError
-    ) {
+    if (!isNaN(event.currentTarget.value) && event.keyCode === 13 && !errors) {
       for (let i = 0; i < projs.length; i++) {
         employee.worksheetData[i].value = projs[i].value;
       }
-      setError(false, '', 'white');
-      setDataLoaded(true);
+      // Remove error incorrect value
+      setError(false, 2);
       save(index, employee.worksheetData, employee.cell); // Calls the function to save the new value in the Excel file
     }
   };
@@ -128,14 +120,7 @@ export const ProjectsPanel: React.FC<{
                   }
                   defaultValue={definition.value}
                   onKeyUp={(event) =>
-                    handleOnChange(
-                      event,
-                      i,
-                      props.employee,
-                      props.error,
-                      props.setError,
-                      props.setDataLoaded,
-                    )
+                    handleOnChange(event, i, props.employee, props.setError)
                   }
                 />
               </td>

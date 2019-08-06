@@ -1,26 +1,28 @@
 import * as React from 'react';
 import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
-// import { handleOnChange } from './SaveHour';
 import {
   CALC,
   ERRORS,
   WORKSHEET_ERRORS,
   DATA_WORKSHEET,
+  COLUMN_NOT_FOUND,
+  INVALID_FORMULA,
 } from './shared/constant';
 import { Employee } from './shared/model/interfaces/Employee';
 import { TableError } from './shared/model/interfaces/Error';
 
 interface isState {
   employee: Employee;
-  error: TableError;
+  error: TableError[];
   showTable: boolean;
 }
 
 export default class App extends React.Component<{}, isState> {
+  errorMessage: string;
+  errorColor: string;
   constructor(props: any, context: Excel.RequestContext) {
     super(props, context);
-    // handleOnChange.bind(this);
 
     this.state = {
       employee: {
@@ -29,23 +31,101 @@ export default class App extends React.Component<{}, isState> {
         cell: '',
         total: 0,
       },
-      error: {
-        showError: false,
-        errorMessage: '',
-        color: 'white',
-      },
-      showTable: false,
+      error: [
+        // 0
+        {
+          showError: false,
+          errorMessage: ERRORS.INCORRECT_CELL,
+          color: 'green',
+        },
+        // 1
+        {
+          showError: false,
+          errorMessage: ERRORS.MORE_VALUES,
+          color: 'yellow',
+        },
+        // 2
+        {
+          showError: false,
+          errorMessage: ERRORS.INCORRECT_VALUE,
+          color: 'red',
+        },
+        // 3
+        {
+          showError: false,
+          errorMessage: WORKSHEET_ERRORS.EMPTY,
+          color: 'red',
+        },
+        // 4
+        {
+          showError: false,
+          errorMessage: WORKSHEET_ERRORS.NOT_FOUND,
+          color: 'red',
+        },
+        // 5
+        {
+          showError: false,
+          errorMessage: COLUMN_NOT_FOUND,
+          color: 'red',
+        },
+        // 6
+        {
+          showError: false,
+          errorMessage: INVALID_FORMULA,
+          color: 'red',
+        },
+      ],
+      showTable: true,
     };
   }
 
-  setError(showError: boolean, errorMessage: string, color: string) {
-    this.setState({
-      error: {
-        showError: showError,
-        errorMessage: errorMessage,
-        color: color,
-      },
+  setError(showError: boolean, idx: number) {
+    this.setState((prevState) => {
+      let error = Object.assign({}, prevState.error);
+      error[idx].showError = showError;
+      return { error };
     });
+
+    if (this.state.error[6].showError) {
+      // Incorrect cell error
+      this.errorMessage = this.state.error[6].errorMessage;
+      this.errorColor = this.state.error[6].color;
+      this.setShowTable(false);
+    } else if (this.state.error[0].showError) {
+      this.errorMessage = this.state.error[0].errorMessage;
+      this.errorColor = this.state.error[0].color;
+      this.setShowTable(false);
+    } else if (this.state.error[5].showError) {
+      // Columns not found
+      this.errorMessage = this.state.error[5].errorMessage;
+      this.errorColor = this.state.error[5].color;
+      this.setShowTable(false);
+    } else if (this.state.error[4].showError) {
+      // Worksheet not found
+      this.errorMessage = this.state.error[4].errorMessage;
+      this.errorColor = this.state.error[4].color;
+      this.setShowTable(false);
+    } else if (this.state.error[3].showError) {
+      // Worksheet empty
+      this.errorMessage = this.state.error[3].errorMessage;
+      this.errorColor = this.state.error[3].color;
+      this.setShowTable(false);
+    } else if (this.state.error[2].showError) {
+      // Incorrect value error
+      this.errorMessage = this.state.error[2].errorMessage;
+      this.errorColor = this.state.error[2].color;
+      this.setShowTable(true);
+    } else if (this.state.error[1].showError) {
+      // To many values error
+      this.errorMessage = this.state.error[1].errorMessage;
+      this.errorColor = this.state.error[1].color;
+      this.setShowTable(true);
+    } else {
+      // No errors
+      this.errorMessage = '';
+      this.errorColor = 'white';
+      this.setShowTable(true);
+    }
   }
 
   setShowTable(showTable: boolean) {
@@ -67,8 +147,9 @@ export default class App extends React.Component<{}, isState> {
     Office.onReady(() =>
       Excel.run(async (context) => {
         try {
-          await this.addEventListeners(context);
-          await this.click(context);
+          const activeSheet = context.workbook.worksheets.getActiveWorksheet();
+          await this.addEventListeners(context, activeSheet);
+          await this.click(context, activeSheet);
         } catch (error) {
           console.error(error);
         }
@@ -76,16 +157,16 @@ export default class App extends React.Component<{}, isState> {
     );
   }
 
-  addEventListeners = async (context) => {
-    const activeSheet = context.workbook.worksheets.getActiveWorksheet();
+  addEventListeners = async (context, activeSheet) => {
     try {
       // Called every time the user click on a cell
       activeSheet.onSelectionChanged.add(
-        async () => await this.onSelectionChangedHandler(context),
+        async () => await this.click(context, activeSheet),
       );
-      // activeSheet.onSelectionChanged.add(() => console.log('waka'));
       // Called every time the user change a value in a cell
-      activeSheet.onChanged.add(async () => await this.click(context));
+      activeSheet.onChanged.add(
+        async () => await this.click(context, activeSheet),
+      );
       // Called every time the ADC.DYNACOLUMNS function calculate
       activeSheet.onCalculated.add(
         async () => await this.onCalculatedHandler(context, activeSheet),
@@ -109,11 +190,6 @@ export default class App extends React.Component<{}, isState> {
     }, 80);
   };
 
-  onSelectionChangedHandler = async (context) => {
-    console.log('waka');
-    await this.click(context);
-  };
-
   getDefinitions = async (context, columnData): Promise<string[]> => {
     const dataDefinitionsColumns = context.workbook.worksheets
       .getItem(DATA_WORKSHEET)
@@ -125,21 +201,19 @@ export default class App extends React.Component<{}, isState> {
 
     await context.sync();
 
-    dataDefinitionsHeaders = dataDefinitionsHeaders.values
-      .filter(String)
-      .map((data) => {
-        return data[0];
-      });
+    dataDefinitionsHeaders = dataDefinitionsHeaders.values[0];
 
     if (
       columnData !== '' &&
       dataDefinitionsHeaders.indexOf(columnData) === -1
     ) {
-      this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
-      this.setShowTable(false);
+      // Set error column not found
+      this.setError(true, 5);
 
       return [''];
     } else {
+      // Remove error column not found
+      this.setError(false, 5);
       const dataDefinitionsValues = dataDefinitionsColumns.columns
         .getItem(columnData)
         .getDataBodyRange()
@@ -180,18 +254,13 @@ export default class App extends React.Component<{}, isState> {
 
       const checkFormula = new RegExp('^=ADC.DYNACOLUMNS(.*)', 'gmi');
       if (!checkFormula.test(formula)) {
-        this.setError(true, ERRORS.INCORRECT_CELL, 'green');
-        this.setShowTable(false);
+        // Set error Incorrect Cell
+        this.setError(true, 0);
       } else {
-        this.setShowTable(true);
+        this.setError(false, 0);
       }
 
       const [cell, column, dataValues] = await this.parseFormula(formula);
-
-      if (column === '') {
-        this.setError(true, WORKSHEET_ERRORS.EMPTY, 'red');
-        this.setShowTable(false);
-      }
 
       const dataDefinitions = await this.getDefinitions(context, column);
 
@@ -202,12 +271,11 @@ export default class App extends React.Component<{}, isState> {
       const sheetsName = worksheetProxi.items.map((sheet) =>
         sheet.name.toLowerCase(),
       );
-      if (
-        column !== '' &&
-        sheetsName.indexOf(DATA_WORKSHEET.toLowerCase()) === -1
-      ) {
-        this.setError(true, WORKSHEET_ERRORS.NOT_FOUND, 'red');
-        this.setShowTable(false);
+      if (sheetsName.indexOf(DATA_WORKSHEET.toLowerCase()) === -1) {
+        // Set error worksheet doesn't exist
+        this.setError(true, 4);
+      } else {
+        this.setError(false, 4);
       }
 
       if (dataValues.length < dataDefinitions.length) {
@@ -216,11 +284,12 @@ export default class App extends React.Component<{}, isState> {
           dataValues.push('0');
         }
       } else if (dataValues.length > dataDefinitions.length) {
-        this.setError(true, ERRORS.MORE_VALUES, 'yellow');
+        // Set error Too many values in the formula
+        this.setError(true, 1);
       }
 
-      if (dataValues.length >= dataDefinitions.length) {
-        this.setError(false, '', 'white');
+      if (dataValues.length <= dataDefinitions.length) {
+        this.setError(false, 1);
       }
 
       const data = dataDefinitions.map((definition: string, idx: number) => {
@@ -242,23 +311,34 @@ export default class App extends React.Component<{}, isState> {
   };
 
   // Get projects' data of the selected Employee
-  click = async (context) => {
+  click = async (context, activeSheet) => {
     try {
-      const [
-        employeeName,
-        employeeCell,
-        employeeData,
-      ] = await this.getEmployeeData(context);
+      const selectCell = activeSheet.context.workbook
+        .getSelectedRange()
+        .load(['values', 'formulas']); // Get the selected cell location, value and index of its row
+      await context.sync();
+      if (selectCell.values[0][0] === '#VALUE!') {
+        this.setError(true, 6);
+      } else if (selectCell.formulas[0][0] === '') {
+        this.setError(false, 6);
+        this.setError(true, 0);
+      } else {
+        this.setError(false, 6);
+        this.setError(false, 0);
+        const [
+          employeeName,
+          employeeCell,
+          employeeData,
+        ] = await this.getEmployeeData(context);
 
-      this.setState((prevState) => {
-        let employee = Object.assign({}, prevState.employee);
-        employee.name = employeeName;
-        employee.worksheetData = employeeData;
-        employee.cell = employeeCell;
-        return { employee };
-      });
-
-      this.setShowTable(true);
+        this.setState((prevState) => {
+          let employee = Object.assign({}, prevState.employee);
+          employee.name = employeeName;
+          employee.worksheetData = employeeData;
+          employee.cell = employeeCell;
+          return { employee };
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -266,13 +346,11 @@ export default class App extends React.Component<{}, isState> {
   render() {
     return (
       <div className="ms-welcome">
-        <ErrorHandling error={this.state.error}>
+        <ErrorHandling message={this.errorMessage} color={this.errorColor}>
           {this.state.showTable && (
             <ProjectsPanel
-              error={this.state.error}
               employee={this.state.employee}
               setError={this.setError.bind(this)}
-              setDataLoaded={this.setShowTable.bind(this)}
             />
           )}
         </ErrorHandling>

@@ -1,17 +1,19 @@
 import * as React from 'react';
 
-const withErrorHandling = (WrappedComponent) => ({ error, children }) => {
-  const colorMessage = 'color-message-' + error.color;
+export const ErrorHandling: React.FC<{
+  message: string;
+  color: string;
+  children;
+}> = ({ message, color, children }) => {
+  const colorMessage = 'color-message-' + color;
   return (
-    <WrappedComponent>
-      <div className={'error-message ' + colorMessage}>
-        {error.showError ? error.errorMessage : ''}
-      </div>
+    <div>
+      <div className={'error-message ' + colorMessage}>{message}</div>
       {children}
-    </WrappedComponent>
+    </div>
   );
 };
 
-export const ErrorHandling = withErrorHandling(({ children }) => (
-  <div>{children}</div>
-));
+// export const ErrorHandling = withErrorHandling(({ children }) => (
+//   <div>{children}</div>
+// ));
