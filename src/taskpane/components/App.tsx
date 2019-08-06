@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ErrorHandling } from './ErrorHandling';
 import { ProjectsPanel } from './ProjectsPanelComponent';
 // import { handleOnChange } from './SaveHour';
-import { getSelectedEmployeeData } from './SelectedEmployee';
 import {
   CALC,
   ERRORS,
