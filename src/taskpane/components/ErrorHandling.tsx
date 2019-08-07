@@ -14,6 +14,3 @@ export const ErrorHandling: React.FC<{
   );
 };
 
-// export const ErrorHandling = withErrorHandling(({ children }) => (
-//   <div>{children}</div>
-// ));

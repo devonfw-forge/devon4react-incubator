@@ -5,4 +5,5 @@ export interface Employee {
   worksheetData: ProjectData[];
   cell: string;
   total: number;
+  column: string;
 }
