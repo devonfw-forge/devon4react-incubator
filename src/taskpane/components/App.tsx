@@ -418,7 +418,6 @@ export default class App extends React.Component<{}, isState> {
   render() {
     return (
       <div className="ms-welcome">
-      {'waka'}
         <ErrorHandling message={this.errorMessage} color={this.errorColor}>
           {this.state.showTable && (
             <ProjectsPanel
