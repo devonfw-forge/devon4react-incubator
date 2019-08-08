@@ -103,7 +103,6 @@ export default class App extends React.Component<{}, isState> {
           this.setError(true, 2);
         } else {
           this.setError(false, 2);
-          this.save();
         }
       },
     );
@@ -358,26 +357,31 @@ export default class App extends React.Component<{}, isState> {
   };
 
   save = async () => {
-    try {
-      await Excel.run(async (context) => {
-        const activeSheet = context.workbook.worksheets.getFirst(); // Get the Excel sheet to update
-        const cellToUpdate = activeSheet.context.workbook
-          .getSelectedRange()
-          .load(['address', 'values', 'rowIndex', 'formulas']);
-        await context.sync();
+    if (
+      this.state.employee.worksheetData.find((data) => data.error === true) ===
+      undefined
+    ) {
+      try {
+        await Excel.run(async (context) => {
+          const activeSheet = context.workbook.worksheets.getFirst(); // Get the Excel sheet to update
+          const cellToUpdate = activeSheet.context.workbook
+            .getSelectedRange()
+            .load(['address', 'values', 'rowIndex', 'formulas']);
+          await context.sync();
 
-        let formula = `${HEAD_FORMULA}${this.state.employee.cell},"${
-          this.state.employee.column
-        }",{`;
-        this.state.employee.worksheetData.map((data, idx, arr) => {
-          idx === arr.length - 1
-            ? (formula = formula + data.value + '})')
-            : (formula = formula + data.value + ';');
+          let formula = `${HEAD_FORMULA}${this.state.employee.cell},"${
+            this.state.employee.column
+          }",{`;
+          this.state.employee.worksheetData.map((data, idx, arr) => {
+            idx === arr.length - 1
+              ? (formula = formula + data.value + '})')
+              : (formula = formula + data.value + ';');
+          });
+          cellToUpdate.formulas = [[formula]];
         });
-        cellToUpdate.formulas = [[formula]];
-      });
-    } catch (error) {
-      console.error(error);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -446,6 +450,7 @@ export default class App extends React.Component<{}, isState> {
               employee={this.state.employee}
               setDataEmployee={this.setEmployeeData.bind(this)}
               setDataError={this.setDataError.bind(this)}
+              save={this.save.bind(this)}
             />
           )}
         </ErrorHandling>

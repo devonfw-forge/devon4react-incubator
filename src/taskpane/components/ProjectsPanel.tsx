@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { TOTAL, HEAD_FORMULA } from './shared/constant';
-import { ProjectData } from './shared/model/interfaces/ProjectData';
+import { TOTAL } from './shared/constant';
 import { Employee } from './shared/model/interfaces/Employee';
 
 export const ProjectsPanel: React.FC<{
   employee: Employee;
   setDataEmployee: Function;
   setDataError: Function;
-}> = props => {
+  save: Function;
+}> = (props) => {
   const handleOnChange = async (value: string, index: number) => {
     props.setDataEmployee(value, index);
     if (!isNaN(Number(value)) && value !== '') {
@@ -37,7 +37,12 @@ export const ProjectsPanel: React.FC<{
                     definition.error ? 'projectFTE error-value' : 'projectFTE'
                   }
                   value={definition.value}
-                  onChange={event => handleOnChange(event.target.value, idx)}
+                  onChange={(event) => handleOnChange(event.target.value, idx)}
+                  onKeyPress={(event) => {
+                    if (event.key === 'Enter') {
+                      props.save();
+                    }
+                  }}
                   autoComplete="off"
                 />
               </td>
