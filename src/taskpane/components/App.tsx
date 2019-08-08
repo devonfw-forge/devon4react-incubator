@@ -386,21 +386,12 @@ export default class App extends React.Component<{}, isState> {
     this.setState(
       (prevState) => {
         let error = prevState.error.map((error) => Object.assign({}, error));
-        let employee = Object.assign({}, prevState.employee);
         error = error.map((error) => {
           error.showError = false;
           return error;
         });
 
-        employee = {
-          cell: '',
-          name: '',
-          worksheetData: [],
-          column: '',
-          total: 0,
-        };
-
-        return { error, employee };
+        return { error };
       },
       () => {},
     );
