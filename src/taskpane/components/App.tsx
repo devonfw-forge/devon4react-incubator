@@ -385,14 +385,11 @@ export default class App extends React.Component<{}, isState> {
   click = async (context, activeSheet) => {
     this.setState(
       (prevState) => {
-        // let error = Object.assign({}, prevState.error);
         let error = prevState.error.map((error) => Object.assign({}, error));
         let employee = Object.assign({}, prevState.employee);
-        console.log('error:', error);
         error = error.map((error) => {
           error.showError = false;
           return error;
-          // console.log('err:', error);
         });
 
         employee = {
@@ -405,9 +402,7 @@ export default class App extends React.Component<{}, isState> {
 
         return { error, employee };
       },
-      () => {
-        console.log(this.state);
-      },
+      () => {},
     );
     try {
       const selectCell = activeSheet.context.workbook
