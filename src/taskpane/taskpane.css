@@ -13,7 +13,9 @@ body {
 }
 
 #container {
+  overflow-x: hidden;
   overflow-y: hidden;
+  -ms-overflow-style: auto;
 }
 
 #container,
@@ -102,7 +104,9 @@ th {
 
 .projectGride thead,
 .projectGride thead tr,
-.projectGride thead tr th {
+.projectGride thead tr th,
+.projectGride tbody,
+.projectGride tbody tr {
   width: 100%;
 }
 
@@ -112,14 +116,22 @@ th {
 }
 
 .projectGride tbody {
+  -ms-overflow-style: -ms-autohiding-scrollbar;
   overflow-y: overlay;
   overflow-x: hidden;
+  display: block;
+  /* flex-basis: auto;
+  flex-shrink: 1;
+  flex-grow: 1;
+  overflow: auto; */
 }
 
 .projectGride tbody td:first-child,
 .projectGride tfoot td:first-child {
   display: flex;
   width: 70%;
+  min-width: 70%;
+  max-width: 70%;
   justify-content: center;
 }
 
@@ -127,9 +139,13 @@ th {
   display: flex;
   align-items: stretch;
   width: 30%;
+  min-width: 30%;
+  max-width: 30%;
 }
 
 .projectGride tfoot {
+  position: fixed;
+  width: 100%;
   margin-top: auto;
   position: -webkit-sticky;
   position: sticky;
